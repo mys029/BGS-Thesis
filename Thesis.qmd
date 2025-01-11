@@ -1,0 +1,642 @@
+---
+title: "Thesis"
+author: "Dylan Li"
+format: 
+  html:
+    theme: 
+      light: flatly
+    page-layout: article
+    code-fold: true
+    self-contained: true
+    code-tools: true
+    toc: true
+execute:
+  echo: true
+  error: true
+  message: false
+  warning: false
+embed-resources: true
+editor: visual
+---
+
+## Libraries
+
+```{r}
+#| label: libraries
+
+library(tidyverse)
+```
+
+
+## Testing different scoring methods
+
+### Grid Setup
+
+```{r}
+#| label: grids
+
+sample_grid <- matrix(c("Bear", "Bee", "Meadow", "Bear", "Meadow", "Meadow", "Bee", "Meadow", "Bee"),3,3,byrow=TRUE)
+sample_grid
+
+sample_grid2 <- matrix(c("Meadow", "Meadow", "Bee", "Meadow", "Bee", "Meadow", "Bee", "Meadow", "Meadow"),3,3,byrow=TRUE)
+sample_grid2
+
+big_grid1 <- matrix(c("Deer", "Meadow", "Bee", "Bear", "Fox", "Wolf", "Meadow", "Meadow", "Trout", "Stream",
+                      "Deer", "Eagle", "Meadow", "Trout", "Stream", "Fox", "Rabbit", "Stream", "Dragonfly",
+                      "Stream"),4,5,byrow=TRUE)
+big_grid1
+
+twenty_seven_x <- rep("x", 27)
+
+super_vec <- append(twenty_seven_x, 
+                      c("x", "x", 
+                        "Deer", "Meadow", "Bee", "Bear", "Fox", 
+                        "x", "x", 
+                        "x", "x", 
+                        "Wolf", "Meadow", "Meadow", "Trout", "Stream",
+                        "x", "x", 
+                        "x", "x", 
+                        "Deer", "Eagle", "Meadow", "Trout", "Stream", 
+                        "x", "x", 
+                        "x", "x", 
+                        "Fox", "Rabbit", "Stream", "Dragonfly","Stream",
+                        "x", "x"))
+
+super_grid1 <- matrix(super_vec,7,9,byrow=TRUE)
+super_grid1
+```
+### Board Generation
+
+```{r}
+cards <- c(rep("Bear", 12), 
+           rep("Bee", 8), 
+           rep("Meadow", 20),
+           rep("Trout", 10),
+           rep("Eagle", 8),
+           rep("Rabbit", 8),
+           rep("Dragonfly", 8),
+           rep("Fox", 12),
+           rep("Deer", 12),
+           rep("Stream", 20),
+           rep("Wolf", 12)
+           )
+
+generate_grid <- function(pool){
+  sample <- sample(pool, 20)
+  board <- matrix(sample, nrow=5, ncol=4, byrow=TRUE)
+  return(board)
+}
+
+generate_grid(cards)
+```
+
+
+### Helper functions
+
+```{r}
+find_cardinals <- function(i, j, grid){
+  cardinals <- list()
+  maxrow = nrow(grid)
+  maxcol = ncol(grid)
+      
+  if(i+1 <= maxrow){
+    cardinals[[length(cardinals)+1]] <- c(i+1,j)
+  }
+  
+  if(i-1 > 0){
+    cardinals[[length(cardinals)+1]] <- c(i-1,j)
+  }
+  
+  if(j+1 <= maxcol){
+    cardinals[[length(cardinals)+1]] <- c(i,j+1)
+  }
+  
+  if(j-1 > 0){
+    cardinals[[length(cardinals)+1]] <- c(i,j-1)
+  }
+  
+  return(cardinals)
+}
+```
+
+```{r}
+find_two_spaces <- function(i, j, grid){
+  two_space <- list()
+  maxrow = nrow(grid)
+  maxcol = ncol(grid)
+      
+  if(i+1 <= maxrow){
+    two_space[[length(two_space)+1]] <- c(i+1,j)
+  }
+  
+  if(i+2 <= maxrow){
+    two_space[[length(two_space)+1]] <- c(i+2,j)
+  }
+  
+  if(i-1 > 0){
+    two_space[[length(two_space)+1]] <- c(i-1,j)
+  }
+  
+  if(i-2 > 0){
+    two_space[[length(two_space)+1]] <- c(i-2,j)
+  }
+  
+  if(j+1 <= maxcol){
+    two_space[[length(two_space)+1]] <- c(i,j+1)
+  }
+  
+  if(j+2 <= maxcol){
+    two_space[[length(two_space)+1]] <- c(i,j+2)
+  }
+  
+  if(j-1 > 0){
+    two_space[[length(two_space)+1]] <- c(i,j-1)
+  }
+  
+  if(j-2 > 0){
+    two_space[[length(two_space)+1]] <- c(i,j-2)
+  }
+  
+  if(i+1 <= maxrow && j+1 <= maxcol){
+    two_space[[length(two_space)+1]] <- c(i+1,j+1)
+  }
+  
+  if(i+1 <= maxrow && j-1 > 0){
+    two_space[[length(two_space)+1]] <- c(i+1,j-1)
+  }
+  
+  if(i-1 > 0 && j+1 <= maxcol){
+    two_space[[length(two_space)+1]] <- c(i-1,j+1)
+  }
+  
+  if(i-1 > 0 && j-1 > 0){
+    two_space[[length(two_space)+1]] <- c(i-1,j-1)
+  }
+  
+  return(two_space)
+}
+```
+
+```{r}
+find_more_meadows <- function(i, j, grid, meadow_list){
+  meadow_list[[length(meadow_list)+1]] = as.double(c(i,j))
+  current_caridnals <- find_cardinals(i, j, grid)
+  for (k in current_caridnals){
+    if (grid[k[1],k[2]] == "Meadow"){
+      if ((list(k) %in% meadow_list) == FALSE){
+        meadow_list = find_more_meadows(as.double(k[1]),as.double(k[2]), grid, meadow_list)
+      }
+    }
+  }
+  return(meadow_list)
+  
+}
+```
+
+```{r}
+find_more_streams <- function(i, j, grid, stream_list){
+  stream_list[[length(stream_list)+1]] = as.double(c(i,j))
+  current_caridnals <- find_cardinals(i, j, grid)
+  for (k in current_caridnals){
+    if (grid[k[1],k[2]] == "Stream"){
+      if ((list(k) %in% stream_list) == FALSE){
+        stream_list = find_more_streams(as.double(k[1]),as.double(k[2]), grid, stream_list)
+      }
+    }
+  }
+  return(stream_list)
+  
+}
+```
+
+### Scoring function
+
+```{r}
+#| label: grid-scoring-function
+
+score_grid <- function(grid){
+  
+  score = 0
+  
+  meadow_patch = list()
+  first_meadow = TRUE
+  stream_patch = list()
+  first_stream = TRUE
+  dragonfly_list = list()
+  deer_row <- c()
+  deer_col <- c()
+  # first_wolf = TRUE
+  num_wolves = 0
+  
+  
+  bear_score = 0
+  bee_score = 0
+  meadow_score = 0
+  trout_score = 0
+  eagle_score = 0
+  rabbit_score = 0
+  dragonfly_score = 0
+  fox_score = 0
+  deer_score = 0
+  stream_score = 0
+  wolf_score = 0
+  diversity_score = 0
+  
+  for (i in 1:nrow(grid)) {
+    for (j in 1:ncol(grid)) {
+      
+      current_caridnals <- find_cardinals(i, j, grid)
+      
+      
+      if(grid[i,j] == "Bear"){
+        for (k in current_caridnals){
+          if (grid[k[1],k[2]] == "Bee" || grid[k[1],k[2]] == "Trout"){
+            score = score + 2
+            bear_score = bear_score + 2
+          }
+        }
+      }
+      
+      if(grid[i,j] == "Bee"){
+        for (k in current_caridnals){
+          if (grid[k[1],k[2]] == "Meadow"){
+            score = score + 3
+            bee_score = bee_score + 3
+          }
+        }
+      }
+      
+      if(grid[i,j] == "Meadow"){
+        if (first_meadow == TRUE){
+          
+          first_meadow = FALSE
+          first_patch = list()
+          completed_patch = find_more_meadows(as.double(i), as.double(j), grid, first_patch)
+          meadow_patch[[length(meadow_patch)+1]] = completed_patch
+          
+        }else{
+          
+          exist = FALSE
+          
+          for (x in 1:length(meadow_patch)){
+            if (list(as.double(c(i,j))) %in% meadow_patch[[x]]){
+              exist = TRUE
+            }
+          }
+          
+          if (exist == FALSE){
+            new_patch = list()
+            completed_patch = find_more_meadows(as.double(i), as.double(j), grid, new_patch)
+            meadow_patch[[length(meadow_patch)+1]] = completed_patch
+          }
+          
+        }
+      }
+      
+      if(grid[i,j] == "Trout"){
+        for (k in current_caridnals){
+          if (grid[k[1],k[2]] == "Dragonfly" || grid[k[1],k[2]] == "Stream"){
+            score = score + 2
+            trout_score = trout_score + 2
+          }
+        }
+      }
+      
+      if(grid[i,j] == "Eagle"){
+        
+        two_space <- find_two_spaces(i, j, grid)
+        
+        for (k in two_space){
+          if (grid[k[1],k[2]] == "Trout" || grid[k[1],k[2]] == "Rabbit"){
+            score = score + 2
+            eagle_score = eagle_score + 2
+          }
+        }
+      }
+      
+      if(grid[i,j] == "Rabbit"){
+        score = score + 1
+        rabbit_score = rabbit_score + 1
+      }
+      
+      if(grid[i,j] == "Dragonfly"){
+        dragonfly_list[[length(dragonfly_list)+1]] = as.double(c(i,j))
+      }
+      
+      if(grid[i,j] == "Fox"){
+        score_it = TRUE
+        
+        for (k in current_caridnals){
+          if (grid[k[1],k[2]] == "Bear" || grid[k[1],k[2]] == "Wolf"){
+            score_it = FALSE
+          }
+        }
+        
+        if (score_it){
+          score = score + 3
+          fox_score = fox_score + 3
+        }
+      }
+      
+      if(grid[i,j] == "Deer"){
+        deer_row <- append(deer_row, i)
+        deer_col <- append(deer_col, j)
+      }
+      
+      if(grid[i,j] == "Stream"){
+        if (first_stream == TRUE){
+          
+          first_stream = FALSE
+          first_patch = list()
+          completed_patch = find_more_streams(as.double(i), as.double(j), grid, first_patch)
+          stream_patch[[length(stream_patch)+1]] = completed_patch
+          
+        }else{
+          
+          exist = FALSE
+          
+          for (x in 1:length(stream_patch)){
+            if (list(as.double(c(i,j))) %in% stream_patch[[x]]){
+              exist = TRUE
+            }
+          }
+          
+          if (exist == FALSE){
+            new_patch = list()
+            completed_patch = find_more_streams(as.double(i), as.double(j), grid, new_patch)
+            stream_patch[[length(stream_patch)+1]] = completed_patch
+          }
+          
+        }
+      }
+      
+      if(grid[i,j] == "Wolf"){
+        # temporary stand in, can only be scored properly with more than 1 player
+        # if (first_wolf == TRUE){
+        #   score = score + 8
+        #   wolf_score = wolf_score + 8
+        #   first_wolf == FALSE
+        # }
+        
+        num_wolves = num_wolves + 1
+      }
+      
+    }
+  }
+  
+  for (i in meadow_patch){
+    if (length(i) == 2){
+      score = score + 3
+      meadow_score = meadow_score + 3
+    }else if (length(i) == 3){
+      score = score + 6
+      meadow_score = meadow_score + 6
+    }else if (length(i) == 4){
+      score = score + 10
+      meadow_score = meadow_score + 10
+    }else if (length(i) >= 5){
+      score = score + 15
+      meadow_score = meadow_score + 15
+    }
+  }
+  
+  largest_stream = 0
+  
+  for (i in stream_patch){
+    if (length(i) > largest_stream){
+      largest_stream = length(i)
+    }
+  }
+  
+  # temporary scoring for largest stream, can only be scored properly with more than 1 player
+  # if (largest_stream > 0){
+  #   score = score + 5
+  #   stream_score = stream_score + 5
+  # }
+  
+  for (d in dragonfly_list){
+    current_caridnals <- find_cardinals(d[1], d[2], grid)
+    
+    largest_score = 0
+    
+    for (k in current_caridnals){
+      if (grid[k[1],k[2]] == "Stream"){
+        for (s in stream_patch){
+          if((list(k) %in% s) == TRUE){
+            current_score = 2 * length(s)
+            if (current_score > largest_score){
+              largest_score = current_score
+            }
+          }
+        }
+      }
+    }
+    
+    score = score + largest_score
+    dragonfly_score = dragonfly_score + largest_score
+  }
+  
+  score = score + 2*length(unique(deer_row))
+  score = score + 2*length(unique(deer_col))
+  
+  deer_score = deer_score + 2*length(unique(deer_row))
+  deer_score = deer_score + 2*length(unique(deer_col))
+  
+  diversity_matrix <- matrix(c(bear_score, bee_score, meadow_score, trout_score, eagle_score, rabbit_score,
+           dragonfly_score, fox_score, deer_score))
+
+  gaps = colSums(diversity_matrix == 0)[1]
+   
+  # if(gaps >= 6){
+  #   score = score - 5
+  #   diversity_score = -5
+  # }else if (gaps == 4){
+  #   score = score + 3
+  #   diversity_score = 3
+  # }else if (gaps == 3){
+  #   score = score + 7
+  #   diversity_score = 7
+  # }else if (gaps <= 2){
+  #   score = score + 12
+  #   diversity_score = 12
+  # }
+  
+  return(c(score, largest_stream, num_wolves, gaps))
+}
+```
+
+### Multiplayer Scoring
+
+```{r}
+mp_score <- function(score_list){
+  
+  # each entry in score_list follows the format: c(score, size_of_largest_stream, num_wolves, diversity_gaps)
+  
+  if(length(score_list) > 2){
+    more_than_2 = TRUE
+  }else{
+    more_than_2 = FALSE
+  }
+  
+  score <- rep(0, length(score_list))
+  stream_size <- rep(0, length(score_list))
+  num_wolves <- rep(0, length(score_list))
+  num_gaps <- rep(0, length(score_list))
+  
+  for (i in 1:length(score_list)){
+    
+    score[i] = score_list[[i]][1]
+    
+    stream_size[i] = score_list[[i]][2]
+    
+    num_wolves[i] = score_list[[i]][3]
+    
+    num_gaps[i] = score_list[[i]][4] + 2
+    
+  }
+  
+  print(score)
+  
+  stream_size = sort(stream_size, decreasing = TRUE)
+  num_wolves = sort(num_wolves, decreasing = TRUE)
+  
+  stream_matrix = matrix(stream_size)
+  wolf_matrix = matrix(num_wolves)
+  
+  largest_stream = stream_size[1]
+  second_stream = stream_size[2]
+  
+  score_largest_s = TRUE
+  score_second_s = TRUE
+  
+  if(colSums(stream_matrix == largest_stream)[1] > 1){
+    score_second_s = FALSE
+  }
+  
+  for (i in 1:length(score_list)){
+      if (score_list[[i]][2] == largest_stream && largest_stream != 0){
+        score[i] = score[i] + 8
+        num_gaps[i] = num_gaps[i] - 1
+      }
+  }
+  
+  if(score_second_s == TRUE){
+    for (i in 1:length(score_list)){
+      if (score_list[[i]][2] == second_stream && second_stream != 0){
+        score[i] = score[i] + 5
+        num_gaps[i] = num_gaps[i] - 1
+      }
+    }
+  }
+  
+  print(score)
+  
+  most_wolves = num_wolves[1]
+  second_wolves = num_wolves[2]
+  if(more_than_2){
+    third_wolves = num_wolves[3]
+  }
+  
+  score_most_w = TRUE
+  score_second_w = TRUE
+  score_third_w = TRUE
+  
+  if(colSums(wolf_matrix == most_wolves)[1] > 1){
+    score_second_w = FALSE
+    if(colSums(wolf_matrix == most_wolves)[1] > 2){
+      score_third_w = FALSE
+    }
+  }
+  
+  for (i in 1:length(score_list)){
+      if (score_list[[i]][3] == most_wolves){
+        score[i] = score[i] + 12
+        num_gaps[i] = num_gaps[i] - 1
+      }
+  }
+  
+  if(colSums(wolf_matrix == second_wolves)[1] > 1){
+    score_third_w = FALSE
+  }
+  
+  if(score_second_w == TRUE){
+    for (i in 1:length(score_list)){
+      if (score_list[[i]][3] == second_wolves){
+        score[i] = score[i] + 8
+        num_gaps[i] = num_gaps[i] - 1
+      }
+    }
+  }
+  
+  if(score_third_w == TRUE && more_than_2 == TRUE){
+    for (i in 1:length(score_list)){
+      if (score_list[[i]][3] == third_wolves){
+        score[i] = score[i] + 4
+        num_gaps[i] = num_gaps[i] - 1
+      }
+    }
+  }
+  
+  print(score)
+  
+  for(i in 1:length(score_list)){
+    if(num_gaps[i] >= 6){
+      score[i] = score[i] - 5
+      diversity_score = -5
+    }else if (num_gaps[i] == 4){
+      score[i] = score[i] + 3
+      diversity_score = 3
+    }else if (num_gaps[i] == 3){
+      score[i] = score[i] + 7
+      diversity_score = 7
+    }else if (num_gaps[i] <= 2){
+      score[i] = score[i] + 12
+      diversity_score = 12
+    }
+  }
+  
+  
+  
+  return(score)
+  
+}
+```
+
+```{r}
+two_player <- list(c(37,4,2,2), c(45,3,3,3))
+four_player <- list(c(37,5,1,2), c(45,2,4,3), c(60,0,0,0), c(47,4,3,4))
+five_player <- list(c(37,3,0,2), c(45,2,4,3), c(60,3,0,0), c(47,2,0,4), c(38,1,4,4))
+```
+
+```{r}
+mp_score(two_player)
+```
+```{r}
+mp_score(four_player)
+```
+```{r}
+mp_score(five_player)
+```
+
+
+```{r}
+z <- score_grid(sample_grid)
+z
+```
+
+```{r}
+z2 <- score_grid(sample_grid2)
+z2
+```
+```{r}
+z3 <- score_grid(big_grid1)
+z3
+```
+
+```{r}
+set.seed(4)
+test_grid <- generate_grid(cards)
+test_grid
+score_grid(test_grid)
+```
+
