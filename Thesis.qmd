@@ -27,7 +27,6 @@ editor: visual
 library(tidyverse)
 ```
 
-
 ## Testing different scoring methods
 
 ### Grid Setup
@@ -65,6 +64,7 @@ super_vec <- append(twenty_seven_x,
 super_grid1 <- matrix(super_vec,7,9,byrow=TRUE)
 super_grid1
 ```
+
 ### Board Generation
 
 ```{r}
@@ -89,7 +89,6 @@ generate_grid <- function(pool){
 
 generate_grid(cards)
 ```
-
 
 ### Helper functions
 
@@ -465,6 +464,38 @@ score_grid <- function(grid){
 }
 ```
 
+### Solo play scoring
+
+```{r}
+solo_score <- function(score_vector){
+  score = score_vector[1]
+  stream_size = score_vector[2]
+  num_wolves = score_vector[3]
+  num_gaps = score_vector[4]
+  
+  score = score + stream_size + num_wolves
+  
+  if(stream_size == 0){
+    num_gaps = num_gaps + 1
+  }
+  if(num_wolves == 0){
+    num_gaps = num_gaps + 1
+  }
+  
+  if(num_gaps >= 6){
+      score = score - 5
+    }else if (num_gaps == 4){
+      score = score + 3
+    }else if (num_gaps == 3){
+      score = score + 7
+    }else if (num_gaps <= 2){
+      score = score + 12
+    }
+  
+  return(score)
+}
+```
+
 ### Multiplayer Scoring
 
 ```{r}
@@ -582,16 +613,12 @@ mp_score <- function(score_list){
   for(i in 1:length(score_list)){
     if(num_gaps[i] >= 6){
       score[i] = score[i] - 5
-      diversity_score = -5
     }else if (num_gaps[i] == 4){
       score[i] = score[i] + 3
-      diversity_score = 3
     }else if (num_gaps[i] == 3){
       score[i] = score[i] + 7
-      diversity_score = 7
     }else if (num_gaps[i] <= 2){
       score[i] = score[i] + 12
-      diversity_score = 12
     }
   }
   
@@ -602,6 +629,8 @@ mp_score <- function(score_list){
 }
 ```
 
+### Testings
+
 ```{r}
 two_player <- list(c(37,4,2,2), c(45,3,3,3))
 four_player <- list(c(37,5,1,2), c(45,2,4,3), c(60,0,0,0), c(47,4,3,4))
@@ -611,13 +640,14 @@ five_player <- list(c(37,3,0,2), c(45,2,4,3), c(60,3,0,0), c(47,2,0,4), c(38,1,4
 ```{r}
 mp_score(two_player)
 ```
+
 ```{r}
 mp_score(four_player)
 ```
+
 ```{r}
 mp_score(five_player)
 ```
-
 
 ```{r}
 z <- score_grid(sample_grid)
@@ -628,15 +658,20 @@ z
 z2 <- score_grid(sample_grid2)
 z2
 ```
+
 ```{r}
 z3 <- score_grid(big_grid1)
 z3
 ```
 
 ```{r}
-set.seed(4)
+set.seed(48)
 test_grid <- generate_grid(cards)
 test_grid
 score_grid(test_grid)
+```
+
+```{r}
+solo_score(score_grid(test_grid))
 ```
 
