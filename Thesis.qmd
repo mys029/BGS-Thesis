@@ -629,6 +629,19 @@ mp_score <- function(score_list){
 }
 ```
 
+### Baseline function
+
+```{r}
+baseline_sim <- function(cards, n = 10000){
+  all_scores <- c()
+  for (i in 1:n){
+    sim_grid <- generate_grid(cards)
+    all_scores <- c(all_scores, solo_score(score_grid(sim_grid)))
+  }
+  return(all_scores)
+}
+```
+
 ### Testings
 
 ```{r}
@@ -673,5 +686,23 @@ score_grid(test_grid)
 
 ```{r}
 solo_score(score_grid(test_grid))
+```
+```{r}
+set.seed(48)
+baseline_scores <- baseline_sim(cards)
+```
+
+```{r}
+mean(baseline_scores)
+sd(baseline_scores)
+var(baseline_scores)
+max(baseline_scores)
+min(baseline_scores)
+```
+
+```{r}
+baseline_data <- as.data.frame(baseline_scores)
+ggplot(aes(x = baseline_scores), data = baseline_data) +
+  geom_histogram(binwidth = 5, fill = "steelblue")
 ```
 
