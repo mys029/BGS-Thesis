@@ -83,7 +83,7 @@ cards <- c(rep("Bear", 12),
 
 generate_grid <- function(pool){
   sample <- sample(pool, 20)
-  board <- matrix(sample, nrow=5, ncol=4, byrow=TRUE)
+  board <- matrix(sample, nrow=4, ncol=5, byrow=TRUE)
   return(board)
 }
 
@@ -642,6 +642,76 @@ baseline_sim <- function(cards, n = 10000){
 }
 ```
 
+### Random Walk MCMC
+
+```{r}
+rw_mcmc <- function(grid){
+  start_score <- solo_score(score_grid(grid))
+  current_grid <- grid
+  continue <- TRUE
+  rows <- rep(1:nrow(grid))
+  cols <- rep(1:ncol(grid))
+  iter = 0
+  score_vector <- c()
+  while(continue){
+    current_score <- solo_score(score_grid(grid))
+    score_vector = c(score_vector, current_score)
+    
+    start_row <- sample(rows, 1)
+    start_col <- sample(cols, 1)
+    # Random swap anywhere
+    end_row <- sample(rows, 1)
+    end_col <- sample(cols, 1)
+
+    while(grid[start_row, start_col] == grid[end_row, end_col]){
+      end_row <- sample(rows, 1)
+      end_col <- sample(cols, 1)
+    }
+    
+    # Adjacent swap only
+    # possible_end <- find_cardinals(start_row, start_col, grid)
+    # end <- sample(possible_end, 1)
+    # end_row <- end[[1]][1]
+    # end_col <- end[[1]][2]
+    
+    start <- grid[start_row, start_col]
+    end <- grid[end_row, end_col]
+    
+    grid[start_row, start_col] = end
+    grid[end_row, end_col] = start
+    
+    proposed_score <- solo_score(score_grid(grid))
+    
+    
+    x <- runif(1,0,1)
+    if(x < proposed_score/current_score){
+      current_grid <- grid
+    }
+    
+    iter = iter + 1
+    if(iter >= 10000){
+      continue = FALSE
+    }
+  }
+  final_score <- solo_score(score_grid(grid))
+  
+  return(c(final_score, start_score, data.frame(score_vector)))
+  
+}
+```
+
+```{r}
+set.seed(4)
+sim_grid1 <- generate_grid(cards)
+x <- rw_mcmc(sim_grid1)
+```
+
+```{r}
+x1 <- data.frame(iter = rep(1:10000), scores = x[[3]])
+ggplot(aes(x = iter, y = scores), data = x1) +
+  geom_line()
+```
+
 ### Testings
 
 ```{r}
@@ -681,6 +751,12 @@ z3
 set.seed(48)
 test_grid <- generate_grid(cards)
 test_grid
+x <- find_cardinals(0,3,test_grid)
+x
+c <- sample(x, 1)
+c
+"el"
+c[[1]][1]
 score_grid(test_grid)
 ```
 
@@ -701,7 +777,7 @@ min(baseline_scores)
 ```
 
 ```{r}
-baseline_data <- as.data.frame(baseline_scores)
+baseline_data <- data.frame(baseline_scores)
 ggplot(aes(x = baseline_scores), data = baseline_data) +
   geom_histogram(binwidth = 5, fill = "steelblue")
 ```
