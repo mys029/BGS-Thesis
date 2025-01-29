@@ -645,7 +645,7 @@ baseline_sim <- function(cards, n = 10000){
 ### Random Walk MCMC
 
 ```{r}
-rw_mcmc <- function(grid){
+rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 0, bp = 500){
   start_score <- solo_score(score_grid(grid))
   current_grid <- grid
   continue <- TRUE
@@ -653,12 +653,26 @@ rw_mcmc <- function(grid){
   cols <- rep(1:ncol(grid))
   iter = 0
   score_vector <- c()
+  highest_score <- start_score
+  highest_grid <- grid
   while(continue){
     current_score <- solo_score(score_grid(grid))
+    if(iter%%bp == 0){
+      if(acceptance_func == "annealing dynamic" || 
+         acceptance_func == "delayed"){
+        grid = highest_grid
+        current_score = highest_score
+      }
+    }
     score_vector = c(score_vector, current_score)
+    if(current_score > highest_score){
+      highest_score = current_score
+      highest_grid = grid
+    }
     
     start_row <- sample(rows, 1)
     start_col <- sample(cols, 1)
+    
     # Random swap anywhere
     end_row <- sample(rows, 1)
     end_col <- sample(cols, 1)
@@ -682,33 +696,244 @@ rw_mcmc <- function(grid){
     
     proposed_score <- solo_score(score_grid(grid))
     
+    if(acceptance_func == "simple"){
+      p = proposed_score
+      c = current_score
+      if(p <= 0){
+        p = p + -1*p + 1
+        c = c + -1*p + 1
+      }
+      if(c <= 0){
+        c = c + -1*c + 1
+        p = p + -1*c + 1
+      }
+      
+      x <- runif(1,0,1)
+      if(x < p/c){
+        current_grid <- grid
+      }
+    }
     
-    x <- runif(1,0,1)
-    if(x < proposed_score/current_score){
-      current_grid <- grid
+    if(acceptance_func == "annealing"){
+      p = proposed_score
+      c = current_score
+      
+      x <- runif(1,0,1)
+      if(x < exp(beta*p)/exp(beta*c)){
+        current_grid <- grid
+      }
+    }
+    
+    if(acceptance_func == "annealing dynamic"){
+      p = proposed_score
+      c = current_score
+      
+      factor = floor(iter/bp) + 1
+      b = beta*(factor)
+      
+      x <- runif(1,0,1)
+      if(x < exp(b*p)/exp(b*c)){
+        current_grid <- grid
+      }
     }
     
     iter = iter + 1
-    if(iter >= 10000){
+    if(iter >= iterations){
       continue = FALSE
     }
+    
+    if(acceptance_func == "delayed"){
+      p = proposed_score
+      c = current_score
+      if(p <= 0){
+        p = p + -1*p + 1
+        c = c + -1*p + 1
+      }
+      if(c <= 0){
+        c = c + -1*c + 1
+        p = p + -1*c + 1
+      }
+      
+      x <- runif(1,0,1)
+      if(x < p/c && p/c < 1){
+        p2 = proposed_score
+        c2 = current_score
+        
+        factor = floor(iter/500) + 1
+        b = beta*(factor)
+        
+        x <- runif(1,0,1)
+        if(x < (exp(b*p2)*c)/(exp(b*c2)*p)){
+          current_grid <- grid
+        }
+      }else if(p/c >= 1){
+        current_grid <- grid
+      }
+    }
   }
-  final_score <- solo_score(score_grid(grid))
   
-  return(c(final_score, start_score, data.frame(score_vector)))
+  final_score <- solo_score(score_grid(grid))
+  if(final_score > highest_score){
+      highest_score = final_score
+      highest_grid = grid
+    }
+  
+  return(c(highest_score, final_score, start_score, data.frame(score_vector)))
   
 }
 ```
 
 ```{r}
-set.seed(4)
-sim_grid1 <- generate_grid(cards)
-x <- rw_mcmc(sim_grid1)
+multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp = 500){
+  start_scores <- c()
+  highest_scores <- c()
+  cards <- c(rep("Bear", 12), 
+           rep("Bee", 8), 
+           rep("Meadow", 20),
+           rep("Trout", 10),
+           rep("Eagle", 8),
+           rep("Rabbit", 8),
+           rep("Dragonfly", 8),
+           rep("Fox", 12),
+           rep("Deer", 12),
+           rep("Stream", 20),
+           rep("Wolf", 12)
+           )
+  for(i in 1:n){
+    sim_grid <- generate_grid(cards)
+    run <- rw_mcmc(sim_grid, iterations, acceptance_func, beta, bp)
+    start_scores <- c(start_scores, run[[3]])
+    highest_scores <- c(highest_scores, run[[1]])
+  }
+  
+  return(list(start_scores, highest_scores))
+}
 ```
 
 ```{r}
-x1 <- data.frame(iter = rep(1:10000), scores = x[[3]])
-ggplot(aes(x = iter, y = scores), data = x1) +
+set.seed(4)
+x1 <- multi_mcmc(2000, 100, "simple")
+```
+
+```{r}
+mean(x1[[1]])
+sd(x1[[1]])
+var(x1[[1]])
+max(x1[[1]])
+min(x1[[1]])
+summary(x1[[1]])
+```
+
+```{r}
+mean(x1[[2]])
+sd(x1[[2]])
+var(x1[[2]])
+max(x1[[2]])
+min(x1[[2]])
+summary(x1[[2]])
+```
+
+```{r}
+set.seed(4)
+x2 <- multi_mcmc(2000, 100, "annealing", 0.08)
+```
+
+```{r}
+mean(x2[[1]])
+sd(x2[[1]])
+var(x2[[1]])
+max(x2[[1]])
+min(x2[[1]])
+summary(x2[[1]])
+```
+
+```{r}
+mean(x2[[2]])
+sd(x2[[2]])
+var(x2[[2]])
+max(x2[[2]])
+min(x2[[2]])
+summary(x2[[2]])
+```
+
+```{r}
+set.seed(4)
+x3 <- multi_mcmc(2000, 100, "annealing dynamic", 0.05)
+```
+
+```{r}
+mean(x3[[1]])
+sd(x3[[1]])
+var(x3[[1]])
+max(x3[[1]])
+min(x3[[1]])
+summary(x3[[1]])
+```
+
+```{r}
+mean(x3[[2]])
+sd(x3[[2]])
+var(x3[[2]])
+max(x3[[2]])
+min(x3[[2]])
+summary(x3[[2]])
+```
+
+```{r}
+set.seed(4)
+x4 <- multi_mcmc(4000, 100, "delayed", 0.005, 250)
+```
+
+```{r}
+mean(x4[[1]])
+sd(x4[[1]])
+var(x4[[1]])
+max(x4[[1]])
+min(x4[[1]])
+summary(x4[[1]])
+```
+
+```{r}
+mean(x4[[2]])
+sd(x4[[2]])
+var(x4[[2]])
+max(x4[[2]])
+min(x4[[2]])
+summary(x4[[2]])
+```
+
+```{r}
+set.seed(4)
+x5 <- multi_mcmc(4000, 100, "annealing dynamic", 0.005, 250)
+```
+
+```{r}
+mean(x5[[1]])
+sd(x5[[1]])
+var(x5[[1]])
+max(x5[[1]])
+min(x5[[1]])
+summary(x5[[1]])
+```
+
+```{r}
+mean(x5[[2]])
+sd(x5[[2]])
+var(x5[[2]])
+max(x5[[2]])
+min(x5[[2]])
+summary(x5[[2]])
+```
+
+```{r}
+set.seed(4)
+sim_grid1 <- generate_grid(cards)
+x <- rw_mcmc(sim_grid1, 4000, "delayed", beta = 0.005, 250)
+```
+
+```{r}
+xz <- data.frame(iter = rep(1:length(x[[4]])), scores = x[[4]])
+ggplot(aes(x = iter, y = scores), data = xz) +
   geom_line()
 ```
 
@@ -763,6 +988,7 @@ score_grid(test_grid)
 ```{r}
 solo_score(score_grid(test_grid))
 ```
+
 ```{r}
 set.seed(48)
 baseline_scores <- baseline_sim(cards)
@@ -774,6 +1000,7 @@ sd(baseline_scores)
 var(baseline_scores)
 max(baseline_scores)
 min(baseline_scores)
+summary(baseline_scores)
 ```
 
 ```{r}
