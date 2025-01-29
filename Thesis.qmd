@@ -656,18 +656,18 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
   highest_score <- start_score
   highest_grid <- grid
   while(continue){
-    current_score <- solo_score(score_grid(grid))
+    current_score <- solo_score(score_grid(current_grid))
     if(iter%%bp == 0){
       if(acceptance_func == "annealing dynamic" || 
          acceptance_func == "delayed"){
-        grid = highest_grid
+        current_grid = highest_grid
         current_score = highest_score
       }
     }
     score_vector = c(score_vector, current_score)
     if(current_score > highest_score){
       highest_score = current_score
-      highest_grid = grid
+      highest_grid = current_grid
     }
     
     start_row <- sample(rows, 1)
@@ -677,7 +677,7 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
     end_row <- sample(rows, 1)
     end_col <- sample(cols, 1)
 
-    while(grid[start_row, start_col] == grid[end_row, end_col]){
+    while(current_grid[start_row, start_col] == current_grid[end_row, end_col]){
       end_row <- sample(rows, 1)
       end_col <- sample(cols, 1)
     }
@@ -688,13 +688,15 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
     # end_row <- end[[1]][1]
     # end_col <- end[[1]][2]
     
-    start <- grid[start_row, start_col]
-    end <- grid[end_row, end_col]
+    proposed_grid <- current_grid
     
-    grid[start_row, start_col] = end
-    grid[end_row, end_col] = start
+    start <- current_grid[start_row, start_col]
+    end <- current_grid[end_row, end_col]
     
-    proposed_score <- solo_score(score_grid(grid))
+    proposed_grid[start_row, start_col] = end
+    proposed_grid[end_row, end_col] = start
+    
+    proposed_score <- solo_score(score_grid(proposed_grid))
     
     if(acceptance_func == "simple"){
       p = proposed_score
@@ -710,7 +712,7 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
       
       x <- runif(1,0,1)
       if(x < p/c){
-        current_grid <- grid
+        current_grid <- proposed_grid
       }
     }
     
@@ -720,7 +722,7 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
       
       x <- runif(1,0,1)
       if(x < exp(beta*p)/exp(beta*c)){
-        current_grid <- grid
+        current_grid <- proposed_grid
       }
     }
     
@@ -733,7 +735,7 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
       
       x <- runif(1,0,1)
       if(x < exp(b*p)/exp(b*c)){
-        current_grid <- grid
+        current_grid <- proposed_grid
       }
     }
     
@@ -764,15 +766,15 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
         
         x <- runif(1,0,1)
         if(x < (exp(b*p2)*c)/(exp(b*c2)*p)){
-          current_grid <- grid
+          current_grid <- proposed_grid
         }
       }else if(p/c >= 1){
-        current_grid <- grid
+        current_grid <- proposed_grid
       }
     }
   }
   
-  final_score <- solo_score(score_grid(grid))
+  final_score <- solo_score(score_grid(current_grid))
   if(final_score > highest_score){
       highest_score = final_score
       highest_grid = grid
@@ -949,9 +951,9 @@ summary(x6[[2]])
 ```
 
 ```{r}
-set.seed(4)
+set.seed(45)
 sim_grid1 <- generate_grid(cards)
-x <- rw_mcmc(sim_grid1, 2000, "annealing dynamic", beta = 0.05, 500)
+x <- rw_mcmc(sim_grid1, 2000, "annealing dynamic", beta = 0.8, 250)
 ```
 
 ```{r}
