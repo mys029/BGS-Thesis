@@ -927,8 +927,31 @@ summary(x5[[2]])
 
 ```{r}
 set.seed(4)
+x6 <- multi_mcmc(4000, 100, "delayed", 0.01, 500)
+```
+
+```{r}
+mean(x6[[1]])
+sd(x6[[1]])
+var(x6[[1]])
+max(x6[[1]])
+min(x6[[1]])
+summary(x6[[1]])
+```
+
+```{r}
+mean(x6[[2]])
+sd(x6[[2]])
+var(x6[[2]])
+max(x6[[2]])
+min(x6[[2]])
+summary(x6[[2]])
+```
+
+```{r}
+set.seed(4)
 sim_grid1 <- generate_grid(cards)
-x <- rw_mcmc(sim_grid1, 4000, "delayed", beta = 0.005, 250)
+x <- rw_mcmc(sim_grid1, 2000, "annealing dynamic", beta = 0.05, 500)
 ```
 
 ```{r}
