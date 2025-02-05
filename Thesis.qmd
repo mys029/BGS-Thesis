@@ -81,9 +81,30 @@ cards <- c(rep("Bear", 12),
            rep("Wolf", 12)
            )
 
-generate_grid <- function(pool){
-  sample <- sample(pool, 20)
-  board <- matrix(sample, nrow=4, ncol=5, byrow=TRUE)
+generate_grid <- function(pool, partial_grid = NULL){
+  if(is.null(partial_grid) == FALSE){
+    blanks <- which(partial_grid == "x", TRUE)
+    n = 20 - nrow(blanks)
+    
+  }else{
+    n = 20
+  }
+  
+  sample <- sample(pool, n)
+  
+  if(is.null(partial_grid) == FALSE){
+    
+    board <- partial_grid
+    
+    for (i in 1:nrow(blanks)){
+      loc <- c(blanks[[i, 1]], blanks[[i, 2]])
+      board[blanks[[i, 1]], blanks[[i, 2]]] = sample[i]
+    }
+    
+  }else{
+    board <- matrix(sample, nrow=4, ncol=5, byrow=TRUE)
+  }
+  
   return(board)
 }
 
@@ -645,7 +666,7 @@ baseline_sim <- function(cards, n = 10000){
 ### Random Walk MCMC
 
 ```{r}
-rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 0, bp = 500){
+rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 0, bp = 500, original = NULL){
   start_score <- solo_score(score_grid(grid))
   current_grid <- grid
   continue <- TRUE
@@ -655,6 +676,8 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
   score_vector <- c()
   highest_score <- start_score
   highest_grid <- grid
+  highest_iter <- 0
+  
   while(continue){
     current_score <- solo_score(score_grid(current_grid))
     if(iter%%bp == 0){
@@ -668,20 +691,51 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
     if(current_score > highest_score){
       highest_score = current_score
       highest_grid = current_grid
+      highest_iter = iter
     }
     
-    start_row <- sample(rows, 1)
-    start_col <- sample(cols, 1)
+    # Choosing swap locations if grid is partially complete
+    if(is.null(original) == FALSE){
+      blanks <- which(original == "x", TRUE)
+      possible <- list()
+      
+      for (i in 1:nrow(blanks)){
+        loc <- c(blanks[[i, 1]], blanks[[i, 2]])
+        possible[[length(possible)+1]] = loc
+      }
+      
+      start_loc <- sample(possible, 1)
+      start_loc <- start_loc[[1]]
+      start_row <- start_loc[1]
+      start_col <- start_loc[2]
+      
+      end_loc <- sample(possible, 1)
+      end_loc <- end_loc[[1]]
+      end_row <- end_loc[1]
+      end_col <- end_loc[2]
+      
+      while(current_grid[start_row, start_col] == current_grid[end_row, end_col]){
+        end_loc <- sample(possible, 1)
+        end_loc <- end_loc[[1]]
+        end_row <- end_loc[1]
+        end_col <- end_loc[2]
+      }
     
-    # Random swap anywhere
-    end_row <- sample(rows, 1)
-    end_col <- sample(cols, 1)
-
-    while(current_grid[start_row, start_col] == current_grid[end_row, end_col]){
+    # Choosing swap locations without partial grid  
+    }else{
+      
+      start_row <- sample(rows, 1)
+      start_col <- sample(cols, 1)
+      
+      # Random swap anywhere
       end_row <- sample(rows, 1)
       end_col <- sample(cols, 1)
+  
+      while(current_grid[start_row, start_col] == current_grid[end_row, end_col]){
+        end_row <- sample(rows, 1)
+        end_col <- sample(cols, 1)
+      }
     }
-    
     # Adjacent swap only
     # possible_end <- find_cardinals(start_row, start_col, grid)
     # end <- sample(possible_end, 1)
@@ -689,6 +743,10 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
     # end_col <- end[[1]][2]
     
     proposed_grid <- current_grid
+    
+    # if(iter == 347 || iter == 668){
+    #   print(proposed_grid)
+    # }
     
     start <- current_grid[start_row, start_col]
     end <- current_grid[end_row, end_col]
@@ -739,11 +797,6 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
       }
     }
     
-    iter = iter + 1
-    if(iter >= iterations){
-      continue = FALSE
-    }
-    
     if(acceptance_func == "delayed"){
       p = proposed_score
       c = current_score
@@ -772,6 +825,11 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
         current_grid <- proposed_grid
       }
     }
+    
+    iter = iter + 1
+      if(iter >= iterations){
+        continue = FALSE
+      }
   }
   
   final_score <- solo_score(score_grid(current_grid))
@@ -780,15 +838,16 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
       highest_grid = grid
     }
   
-  return(c(highest_score, final_score, start_score, data.frame(score_vector)))
+  return(c(highest_score, final_score, start_score, highest_iter, data.frame(score_vector)))
   
 }
 ```
 
 ```{r}
-multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp = 500){
+multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp = 500, grid = NULL){
   start_scores <- c()
   highest_scores <- c()
+  highest_iter <- c()
   cards <- c(rep("Bear", 12), 
            rep("Bee", 8), 
            rep("Meadow", 20),
@@ -801,14 +860,35 @@ multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp =
            rep("Stream", 20),
            rep("Wolf", 12)
            )
-  for(i in 1:n){
-    sim_grid <- generate_grid(cards)
-    run <- rw_mcmc(sim_grid, iterations, acceptance_func, beta, bp)
-    start_scores <- c(start_scores, run[[3]])
-    highest_scores <- c(highest_scores, run[[1]])
+  
+  # Creating proper pool of cards if grid is partially complete
+  if(is.null(grid) == FALSE){
+    df <- as.data.frame(table(grid))
+    animals <- levels(df$grid)
+    for(i in 1:nrow(grid)){
+      animal <- animals[i]
+      num = length(cards[cards == animal])
+      cards = cards[!cards == animal]
+      cards <- c(cards, rep(animal, num - df[i,2]))
+    }
   }
   
-  return(list(start_scores, highest_scores))
+  for(i in 1:n){
+    
+    if(is.null(grid) == FALSE){
+      sim_grid <- generate_grid(cards, grid)
+      run <- rw_mcmc(sim_grid, iterations, acceptance_func, beta, bp, grid)
+    }else{
+      sim_grid <- generate_grid(cards)
+      run <- rw_mcmc(sim_grid, iterations, acceptance_func, beta, bp)
+    }
+    
+    start_scores <- c(start_scores, run[[3]])
+    highest_scores <- c(highest_scores, run[[1]])
+    highest_iter <- c(highest_iter, run[[4]])
+  }
+  
+  return(list(start_scores, highest_scores, highest_iter))
 }
 ```
 
@@ -833,11 +913,12 @@ var(x1[[2]])
 max(x1[[2]])
 min(x1[[2]])
 summary(x1[[2]])
+summary(x1[[3]])
 ```
 
 ```{r}
 set.seed(4)
-x2 <- multi_mcmc(2000, 100, "annealing", 0.08)
+x2 <- multi_mcmc(2000, 100, "annealing", 0.8, 250)
 ```
 
 ```{r}
@@ -856,11 +937,12 @@ var(x2[[2]])
 max(x2[[2]])
 min(x2[[2]])
 summary(x2[[2]])
+summary(x2[[3]])
 ```
 
 ```{r}
 set.seed(4)
-x3 <- multi_mcmc(2000, 100, "annealing dynamic", 0.05)
+x3 <- multi_mcmc(2000, 100, "annealing dynamic", 0.08, 250)
 ```
 
 ```{r}
@@ -879,11 +961,12 @@ var(x3[[2]])
 max(x3[[2]])
 min(x3[[2]])
 summary(x3[[2]])
+summary(x3[[3]])
 ```
 
 ```{r}
 set.seed(4)
-x4 <- multi_mcmc(4000, 100, "delayed", 0.005, 250)
+x4 <- multi_mcmc(2000, 100, "annealing dynamic", 0.2, 250)
 ```
 
 ```{r}
@@ -905,8 +988,8 @@ summary(x4[[2]])
 ```
 
 ```{r}
-set.seed(4)
-x5 <- multi_mcmc(4000, 100, "annealing dynamic", 0.005, 250)
+set.seed(49)
+x5 <- multi_mcmc(2000, 100, "annealing", 0.8, 250)
 ```
 
 ```{r}
@@ -925,11 +1008,12 @@ var(x5[[2]])
 max(x5[[2]])
 min(x5[[2]])
 summary(x5[[2]])
+summary(x5[[3]])
 ```
 
 ```{r}
-set.seed(4)
-x6 <- multi_mcmc(4000, 100, "delayed", 0.01, 500)
+set.seed(49)
+x6 <- multi_mcmc(2000, 100, "delayed", 0.2, 250)
 ```
 
 ```{r}
@@ -948,6 +1032,106 @@ var(x6[[2]])
 max(x6[[2]])
 min(x6[[2]])
 summary(x6[[2]])
+summary(x6[[3]])
+```
+
+```{r}
+set.seed(49)
+x7 <- multi_mcmc(1000, 1000, "annealing", 0.8, 250)
+```
+
+```{r}
+mean(x7[[1]])
+sd(x7[[1]])
+var(x7[[1]])
+max(x7[[1]])
+min(x7[[1]])
+summary(x7[[1]])
+```
+
+```{r}
+mean(x7[[2]])
+sd(x7[[2]])
+var(x7[[2]])
+max(x7[[2]])
+min(x7[[2]])
+summary(x7[[2]])
+summary(x7[[3]])
+```
+
+```{r}
+test_grid1 <- matrix(c("x", "Bee", "Meadow", "x", "x", "x", "Meadow", "Meadow", "x", "x",
+                      "Deer", "Bee", "Meadow", "x", "x", "x", "Bear", "Bee", "Deer",
+                      "x"),4,5,byrow=TRUE)
+test_grid1
+```
+```{r}
+set.seed(4)
+partial1 <- multi_mcmc(1000, 100, "annealing", 0.8, 200, test_grid1)
+```
+
+```{r}
+mean(partial1[[1]])
+sd(partial1[[1]])
+var(partial1[[1]])
+max(partial1[[1]])
+min(partial1[[1]])
+summary(partial1[[1]])
+```
+
+```{r}
+mean(partial1[[2]])
+sd(partial1[[2]])
+var(partial1[[2]])
+max(partial1[[2]])
+min(partial1[[2]])
+summary(partial1[[2]])
+summary(partial1[[3]])
+```
+
+
+### Tuning
+
+```{r}
+annealing_tune <- function(beta, bp){
+  beta_df <- c()
+  bp_df <- c()
+  start_score <- c()
+  highest_score <- c()
+  iter_at_highest <- c()
+  for(i in beta){
+    for (j in bp){
+      sim <- multi_mcmc(1000, 100, "annealing", i, j)
+      beta_df <- c(beta_df, i)
+      bp_df <- c(bp_df, j)
+      start_score <- c(start_score, mean(sim[[1]]))
+      highest_score <- c(highest_score, mean(sim[[2]]))
+      iter_at_highest <- c(iter_at_highest, mean(sim[[3]]))
+    }
+  }
+  
+  df <- data.frame(
+    beta = beta_df,
+    break_point = bp_df,
+    mean_start_score = start_score,
+    mean_highest_score = highest_score,
+    average_iterations = iter_at_highest
+  )
+  
+  return(df)
+}
+```
+
+```{r}
+beta <- c(0.1, 0.3, 0.6, 0.8, 0.9, 0.95)
+bp <- c(200, 250)
+
+set.seed(4)
+tune1 <- annealing_tune(beta, bp)
+```
+
+```{r}
+tune1
 ```
 
 ```{r}
@@ -961,6 +1145,7 @@ xz <- data.frame(iter = rep(1:length(x[[4]])), scores = x[[4]])
 ggplot(aes(x = iter, y = scores), data = xz) +
   geom_line()
 ```
+
 
 ### Testings
 
