@@ -680,7 +680,8 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
   
   while(continue){
     current_score <- solo_score(score_grid(current_grid))
-    if(iter%%bp == 0){
+    if(bp == 0){}
+    else if(iter%%bp == 0){
       if(acceptance_func == "annealing dynamic" || 
          acceptance_func == "delayed"){
         current_grid = highest_grid
@@ -892,12 +893,12 @@ multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp =
 }
 ```
 
-```{r}
+```{r, eval=FALSE}
 set.seed(4)
 x1 <- multi_mcmc(2000, 100, "simple")
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x1[[1]])
 sd(x1[[1]])
 var(x1[[1]])
@@ -906,7 +907,7 @@ min(x1[[1]])
 summary(x1[[1]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x1[[2]])
 sd(x1[[2]])
 var(x1[[2]])
@@ -916,12 +917,12 @@ summary(x1[[2]])
 summary(x1[[3]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 set.seed(4)
 x2 <- multi_mcmc(2000, 100, "annealing", 0.8, 250)
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x2[[1]])
 sd(x2[[1]])
 var(x2[[1]])
@@ -930,7 +931,7 @@ min(x2[[1]])
 summary(x2[[1]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x2[[2]])
 sd(x2[[2]])
 var(x2[[2]])
@@ -940,12 +941,12 @@ summary(x2[[2]])
 summary(x2[[3]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 set.seed(4)
 x3 <- multi_mcmc(2000, 100, "annealing dynamic", 0.08, 250)
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x3[[1]])
 sd(x3[[1]])
 var(x3[[1]])
@@ -954,7 +955,7 @@ min(x3[[1]])
 summary(x3[[1]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x3[[2]])
 sd(x3[[2]])
 var(x3[[2]])
@@ -964,12 +965,12 @@ summary(x3[[2]])
 summary(x3[[3]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 set.seed(4)
 x4 <- multi_mcmc(2000, 100, "annealing dynamic", 0.2, 250)
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x4[[1]])
 sd(x4[[1]])
 var(x4[[1]])
@@ -978,7 +979,7 @@ min(x4[[1]])
 summary(x4[[1]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x4[[2]])
 sd(x4[[2]])
 var(x4[[2]])
@@ -987,12 +988,12 @@ min(x4[[2]])
 summary(x4[[2]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 set.seed(49)
 x5 <- multi_mcmc(2000, 100, "annealing", 0.8, 250)
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x5[[1]])
 sd(x5[[1]])
 var(x5[[1]])
@@ -1001,7 +1002,7 @@ min(x5[[1]])
 summary(x5[[1]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x5[[2]])
 sd(x5[[2]])
 var(x5[[2]])
@@ -1011,12 +1012,12 @@ summary(x5[[2]])
 summary(x5[[3]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 set.seed(49)
 x6 <- multi_mcmc(2000, 100, "delayed", 0.2, 250)
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x6[[1]])
 sd(x6[[1]])
 var(x6[[1]])
@@ -1025,7 +1026,7 @@ min(x6[[1]])
 summary(x6[[1]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x6[[2]])
 sd(x6[[2]])
 var(x6[[2]])
@@ -1035,12 +1036,12 @@ summary(x6[[2]])
 summary(x6[[3]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 set.seed(49)
 x7 <- multi_mcmc(1000, 1000, "annealing", 0.8, 250)
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x7[[1]])
 sd(x7[[1]])
 var(x7[[1]])
@@ -1049,7 +1050,7 @@ min(x7[[1]])
 summary(x7[[1]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(x7[[2]])
 sd(x7[[2]])
 var(x7[[2]])
@@ -1065,12 +1066,12 @@ test_grid1 <- matrix(c("x", "Bee", "Meadow", "x", "x", "x", "Meadow", "Meadow", 
                       "x"),4,5,byrow=TRUE)
 test_grid1
 ```
-```{r}
+```{r, eval=FALSE}
 set.seed(4)
 partial1 <- multi_mcmc(1000, 100, "annealing", 0.8, 200, test_grid1)
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(partial1[[1]])
 sd(partial1[[1]])
 var(partial1[[1]])
@@ -1079,7 +1080,7 @@ min(partial1[[1]])
 summary(partial1[[1]])
 ```
 
-```{r}
+```{r, eval=FALSE}
 mean(partial1[[2]])
 sd(partial1[[2]])
 var(partial1[[2]])
@@ -1093,46 +1094,66 @@ summary(partial1[[3]])
 ### Tuning
 
 ```{r}
-annealing_tune <- function(beta, bp){
+tune <- function(iter, beta, bp, type){
   beta_df <- c()
   bp_df <- c()
+  iter_df <- c()
   start_score <- c()
   highest_score <- c()
   iter_at_highest <- c()
   for(i in beta){
     for (j in bp){
-      sim <- multi_mcmc(1000, 100, "annealing", i, j)
-      beta_df <- c(beta_df, i)
-      bp_df <- c(bp_df, j)
-      start_score <- c(start_score, mean(sim[[1]]))
-      highest_score <- c(highest_score, mean(sim[[2]]))
-      iter_at_highest <- c(iter_at_highest, mean(sim[[3]]))
+      for(k in iter){
+        sim <- multi_mcmc(k, 100, type, i, j)
+        beta_df <- c(beta_df, i)
+        bp_df <- c(bp_df, j)
+        iter_df <- c(iter_df, k)
+        start_score <- c(start_score, mean(sim[[1]]))
+        highest_score <- c(highest_score, mean(sim[[2]]))
+        iter_at_highest <- c(iter_at_highest, mean(sim[[3]]))
+      }
+      
     }
   }
   
   df <- data.frame(
+    iterations = iter_df,
     beta = beta_df,
     break_point = bp_df,
     mean_start_score = start_score,
     mean_highest_score = highest_score,
-    average_iterations = iter_at_highest
+    average_iterations = iter_at_highest,
+    type = type
   )
   
   return(df)
 }
 ```
 
-```{r}
-beta <- c(0.1, 0.3, 0.6, 0.8, 0.9, 0.95)
+```{r, eval=FALSE}
+beta <- c(0.1,0.3,0.5,0.7,0.8,0.9)
 bp <- c(200, 250)
+iter <- c(1000, 1500)
 
 set.seed(4)
-tune1 <- annealing_tune(beta, bp)
+tune1 <- tune(iter, beta, bp, "delayed")
 ```
 
-```{r}
+```{r, eval=FALSE}
 tune1
 ```
+
+```{r, eval=FALSE}
+# write.csv(tune1,here::here("tuned-parameters.csv")) 
+```
+
+```{r, eval=FALSE}
+tuned_params <- read.csv(here::here("tuned-parameters.csv")) %>%
+  select(-X)
+new_params <- rbind(tuned_params, tune1)
+write.csv(new_params,here::here("tuned-parameters.csv"))
+```
+
 
 ```{r}
 set.seed(45)
