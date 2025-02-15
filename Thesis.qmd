@@ -1101,6 +1101,11 @@ tune <- function(iter, beta, bp, type){
   start_score <- c()
   highest_score <- c()
   iter_at_highest <- c()
+  highest_score_sd <- c()
+  highest_iter_sd <- c()
+  max_highest <- c()
+  percentile_90 <- c()
+  score_75_plus <- c()
   for(i in beta){
     for (j in bp){
       for(k in iter){
@@ -1111,6 +1116,12 @@ tune <- function(iter, beta, bp, type){
         start_score <- c(start_score, mean(sim[[1]]))
         highest_score <- c(highest_score, mean(sim[[2]]))
         iter_at_highest <- c(iter_at_highest, mean(sim[[3]]))
+        highest_iter_sd <- c(highest_iter_sd, sd(sim[[3]]))
+        highest_score_sd <- c(highest_score_sd, sd(sim[[2]]))
+        max_highest <- c(max_highest, max(sim[[2]]))
+        percentile_90 <- c(percentile_90, quantile(sim[[2]],probs=0.9))
+        s <- sim[[2]]
+        score_75_plus <- c(score_75_plus, length(s[s>=75]))
       }
       
     }
@@ -1122,7 +1133,12 @@ tune <- function(iter, beta, bp, type){
     break_point = bp_df,
     mean_start_score = start_score,
     mean_highest_score = highest_score,
+    sd_highest_score = highest_score_sd,
+    max_score = max_highest,
+    score_90th_percent = percentile_90,
+    score_75_plus = score_75_plus,
     average_iterations = iter_at_highest,
+    sd_iterations = highest_iter_sd,
     type = type
   )
   
@@ -1131,12 +1147,12 @@ tune <- function(iter, beta, bp, type){
 ```
 
 ```{r, eval=FALSE}
-beta <- c(0.85, 0.9, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99)
-bp <- c(125)
-iter <- c(500)
+beta <- c(0.3,0.8,0.9)
+bp <- c(125, 250)
+iter <- c(500, 750)
 
-set.seed(49)
-tune1 <- tune(iter, beta, bp, "annealing dynamic")
+set.seed(4)
+tune1 <- tune(iter, beta, bp, "delayed")
 ```
 
 ```{r, eval=FALSE}
@@ -1144,17 +1160,16 @@ tune1
 ```
 
 ```{r, eval=FALSE}
-# write.csv(tune1,here::here("tuned-parameters.csv"))
+# write.csv(tune1,here::here("new-parameters.csv"),row.names = FALSE)
 ```
 
 ```{r, eval=FALSE}
-tuned_params <- read.csv(here::here("tuned-parameters.csv")) %>%
-  select(-X)
+tuned_params1 <- read.csv(here::here("new-parameters.csv"))
 ```
 
 ```{r, eval=FALSE}
-new_params <- rbind(tuned_params, tune1)
-write.csv(new_params,here::here("tuned-parameters.csv"))
+new_params <- rbind(tuned_params1, tune1)
+write.csv(new_params,here::here("new-parameters.csv"), row.names = FALSE)
 ```
 
 
