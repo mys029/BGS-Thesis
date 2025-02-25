@@ -845,7 +845,7 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
 ```
 
 ```{r}
-multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp = 500, grid = NULL){
+multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp = 500, grid = NULL, boardlist = NULL){
   start_scores <- c()
   highest_scores <- c()
   highest_iter <- c()
@@ -879,6 +879,8 @@ multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp =
     if(is.null(grid) == FALSE){
       sim_grid <- generate_grid(cards, grid)
       run <- rw_mcmc(sim_grid, iterations, acceptance_func, beta, bp, grid)
+    }else if(is.null(boardlist) == FALSE){
+      run <- rw_mcmc(boardlist[[i]], iterations, acceptance_func, beta, bp)
     }else{
       sim_grid <- generate_grid(cards)
       run <- rw_mcmc(sim_grid, iterations, acceptance_func, beta, bp)
@@ -1094,7 +1096,7 @@ summary(partial1[[3]])
 ### Tuning
 
 ```{r}
-tune <- function(iter, beta, bp, type){
+tune <- function(iter, beta, bp, type, boardlist = NULL){
   beta_df <- c()
   bp_df <- c()
   iter_df <- c()
@@ -1109,7 +1111,11 @@ tune <- function(iter, beta, bp, type){
   for(i in beta){
     for (j in bp){
       for(k in iter){
-        sim <- multi_mcmc(k, 100, type, i, j)
+        if(is.null(boardlist) == FALSE){
+          sim <- multi_mcmc(k, 100, type, i, j, boardlist = boardlist)
+        }else{
+          sim <- multi_mcmc(k, 100, type, i, j)
+        }
         beta_df <- c(beta_df, i)
         bp_df <- c(bp_df, j)
         iter_df <- c(iter_df, k)
@@ -1159,12 +1165,59 @@ tune1 <- tune(iter, beta, bp, "delayed")
 tune1
 ```
 
+```{r}
+generate_100 <- function(pool){
+  board_list <- list()
+  for(i in 1:100){
+    board <- generate_grid(pool)
+    board_list[[length(board_list)+1]] = board
+  }
+  return(board_list)
+}
+```
+
+```{r}
+# set.seed(88)
+set.seed(89)
+board100 <- generate_100(cards)
+```
+
+```{r}
+tune_exact1 <- tune(1000, 0.99, 250, "annealing dynamic", boardlist = board100)
+tune_exact2 <- tune(1000, 0.9, 200, "annealing dynamic", boardlist = board100)
+tune_exact3 <- tune(2000, 0.7, 500, "delayed", boardlist = board100)
+tune_exact4 <- tune(2000, 0.8, 500, "annealing dynamic", boardlist = board100)
+tune_exact5 <- tune(1500, 0.9, 500, "annealing dynamic", boardlist = board100)
+tune_exact6 <- tune(750, 0.99, 250, "annealing dynamic", boardlist = board100)
+tune_exact7 <- tune(750, 0.3, 250, "delayed", boardlist = board100)
+tune_exact8 <- tune(500, 0.99, 250, "annealing dynamic", boardlist = board100)
+tune_exact9 <- tune(2000, 0.9, 250, "annealing dynamic", boardlist = board100)
+tune_exact10 <- tune(750, 0.9, 125, "annealing dynamic", boardlist = board100)
+tune_exact11 <- tune(1500, 0.9, 250, "annealing dynamic", boardlist = board100)
+```
+
+```{r}
+final_params <- rbind(tune_exact1,
+                      tune_exact2,
+                      tune_exact3,
+                      tune_exact4,
+                      tune_exact5,
+                      tune_exact6,
+                      tune_exact7,
+                      tune_exact8,
+                      tune_exact9,
+                      tune_exact10,
+                      tune_exact11)
+
+write.csv(final_params,here::here("final-parameters-seed2.csv"), row.names = FALSE)
+```
+
 ```{r, eval=FALSE}
 # write.csv(tune1,here::here("new-parameters.csv"),row.names = FALSE)
 ```
 
 ```{r, eval=FALSE}
-tuned_params1 <- read.csv(here::here("new-parameters.csv"))
+tuned_params1 <- read.csv(here::here("final-parameters.csv"))
 ```
 
 ```{r, eval=FALSE}
