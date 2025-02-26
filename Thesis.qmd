@@ -666,7 +666,7 @@ baseline_sim <- function(cards, n = 10000){
 ### Random Walk MCMC
 
 ```{r}
-rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 0, bp = 500, original = NULL){
+rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 0, bp = 500, original = NULL, record_board = FALSE){
   start_score <- solo_score(score_grid(grid))
   current_grid <- grid
   continue <- TRUE
@@ -839,13 +839,17 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
       highest_grid = grid
     }
   
-  return(c(highest_score, final_score, start_score, highest_iter, data.frame(score_vector)))
-  
+  if(record_board == TRUE){
+    return(c(t(highest_grid), highest_score))
+  }else{
+    return(c(highest_score, final_score, start_score, highest_iter, data.frame(score_vector)))
+  }
 }
 ```
 
 ```{r}
-multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp = 500, grid = NULL, boardlist = NULL){
+multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp = 500, grid = NULL, boardlist = NULL, record_board = FALSE){
+  first = TRUE
   start_scores <- c()
   highest_scores <- c()
   highest_iter <- c()
@@ -877,21 +881,101 @@ multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp =
   for(i in 1:n){
     
     if(is.null(grid) == FALSE){
-      sim_grid <- generate_grid(cards, grid)
-      run <- rw_mcmc(sim_grid, iterations, acceptance_func, beta, bp, grid)
+      
+      if(record_board == TRUE){
+        sim_grid <- generate_grid(cards, grid)
+        run <- rw_mcmc(sim_grid, iterations, acceptance_func, beta, bp, grid, record_board = TRUE)
+      }else{
+        sim_grid <- generate_grid(cards, grid)
+        run <- rw_mcmc(sim_grid, iterations, acceptance_func, beta, bp, grid)
+      }
+      
     }else if(is.null(boardlist) == FALSE){
-      run <- rw_mcmc(boardlist[[i]], iterations, acceptance_func, beta, bp)
+      
+      if(record_board == TRUE){
+        run <- rw_mcmc(boardlist[[i]], iterations, acceptance_func, beta, bp, record_board = TRUE)
+      }else{
+        run <- rw_mcmc(boardlist[[i]], iterations, acceptance_func, beta, bp)
+      }
+      
     }else{
-      sim_grid <- generate_grid(cards)
-      run <- rw_mcmc(sim_grid, iterations, acceptance_func, beta, bp)
+      if(record_board == TRUE){
+        sim_grid <- generate_grid(cards)
+        run <- rw_mcmc(sim_grid, iterations, acceptance_func, beta, bp, record_board = TRUE)
+      }else{
+        sim_grid <- generate_grid(cards)
+        run <- rw_mcmc(sim_grid, iterations, acceptance_func, beta, bp)
+      }
     }
     
-    start_scores <- c(start_scores, run[[3]])
-    highest_scores <- c(highest_scores, run[[1]])
-    highest_iter <- c(highest_iter, run[[4]])
+    if(record_board == TRUE){
+      if(first == TRUE){
+        first = FALSE
+        
+        df <- data.frame(
+          row1col1 = run[[1]],
+          row1col2 = run[[2]],
+          row1col3 = run[[3]],
+          row1col4 = run[[4]],
+          row1col5 = run[[5]],
+          row2col1 = run[[6]],
+          row2col2 = run[[7]],
+          row2col3 = run[[8]],
+          row2col4 = run[[9]],
+          row2col5 = run[[10]],
+          row3col1 = run[[11]],
+          row3col2 = run[[12]],
+          row3col3 = run[[13]],
+          row3col4 = run[[14]],
+          row3col5 = run[[15]],
+          row4col1 = run[[16]],
+          row4col2 = run[[17]],
+          row4col3 = run[[18]],
+          row4col4 = run[[19]],
+          row4col5 = run[[20]],
+          score = run[[21]]
+        )
+        
+      }else{
+        row <- data.frame(
+          row1col1 = run[[1]],
+          row1col2 = run[[2]],
+          row1col3 = run[[3]],
+          row1col4 = run[[4]],
+          row1col5 = run[[5]],
+          row2col1 = run[[6]],
+          row2col2 = run[[7]],
+          row2col3 = run[[8]],
+          row2col4 = run[[9]],
+          row2col5 = run[[10]],
+          row3col1 = run[[11]],
+          row3col2 = run[[12]],
+          row3col3 = run[[13]],
+          row3col4 = run[[14]],
+          row3col5 = run[[15]],
+          row4col1 = run[[16]],
+          row4col2 = run[[17]],
+          row4col3 = run[[18]],
+          row4col4 = run[[19]],
+          row4col5 = run[[20]],
+          score = run[[21]]
+        )
+        df <- rbind(df, row) 
+      }
+    }else{
+      start_scores <- c(start_scores, run[[3]])
+      highest_scores <- c(highest_scores, run[[1]])
+      highest_iter <- c(highest_iter, run[[4]])
+    }
+    
   }
   
-  return(list(start_scores, highest_scores, highest_iter))
+  if(record_board == TRUE){
+    return(df)
+  }else{
+    return(list(start_scores, highest_scores, highest_iter))
+  }
+  
 }
 ```
 
@@ -1176,13 +1260,13 @@ generate_100 <- function(pool){
 }
 ```
 
-```{r}
+```{r, eval=FALSE}
 # set.seed(88)
 set.seed(89)
 board100 <- generate_100(cards)
 ```
 
-```{r}
+```{r, eval=FALSE}
 tune_exact1 <- tune(1000, 0.99, 250, "annealing dynamic", boardlist = board100)
 tune_exact2 <- tune(1000, 0.9, 200, "annealing dynamic", boardlist = board100)
 tune_exact3 <- tune(2000, 0.7, 500, "delayed", boardlist = board100)
@@ -1236,6 +1320,41 @@ x <- rw_mcmc(sim_grid1, 2000, "annealing dynamic", beta = 0.8, 250)
 xz <- data.frame(iter = rep(1:length(x[[4]])), scores = x[[4]])
 ggplot(aes(x = iter, y = scores), data = xz) +
   geom_line()
+```
+
+### Database
+
+```{r, eval=FALSE}
+startTime <- Sys.time()
+db_gen <- multi_mcmc(1000, 2000, "annealing dynamic", 0.9, 200, record_board = TRUE)
+endTime <- Sys.time()
+print(endTime - startTime)
+
+database_old <- read.csv(here::here("database.csv"))
+database_new <- rbind(database_old, db_gen)
+database_new <- database_new %>% distinct()
+write.csv(database_new, here::here("database.csv"), row.names = FALSE)
+```
+
+```{r, eval=FALSE}
+head(db_gen)
+```
+
+```{r, eval=FALSE}
+# write.csv(db_gen, here::here("database.csv"), row.names = FALSE)
+```
+
+```{r, eval=FALSE}
+database_old <- read.csv(here::here("database.csv"))
+```
+
+```{r, eval=FALSE}
+database_new <- rbind(database_old, db_gen)
+write.csv(database_new, here::here("database.csv"), row.names = FALSE)
+```
+
+```{r, eval=FALSE}
+database_new <- database_new %>% distinct()
 ```
 
 
