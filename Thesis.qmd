@@ -848,12 +848,13 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
 ```
 
 ```{r}
-multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp = 500, grid = NULL, boardlist = NULL, record_board = FALSE){
+multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp = 500, grid = NULL, boardlist = NULL, record_board = FALSE, cards = NULL, card_name = NULL){
   first = TRUE
   start_scores <- c()
   highest_scores <- c()
   highest_iter <- c()
-  cards <- c(rep("Bear", 12), 
+  if(is.null(cards) == TRUE){
+    cards <- c(rep("Bear", 12), 
            rep("Bee", 8), 
            rep("Meadow", 20),
            rep("Trout", 10),
@@ -865,6 +866,9 @@ multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp =
            rep("Stream", 20),
            rep("Wolf", 12)
            )
+    card_name = "default"
+  }
+  
   
   # Creating proper pool of cards if grid is partially complete
   if(is.null(grid) == FALSE){
@@ -933,7 +937,8 @@ multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp =
           row4col3 = run[[18]],
           row4col4 = run[[19]],
           row4col5 = run[[20]],
-          score = run[[21]]
+          score = run[[21]],
+          pool = card_name
         )
         
       }else{
@@ -958,7 +963,8 @@ multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp =
           row4col3 = run[[18]],
           row4col4 = run[[19]],
           row4col5 = run[[20]],
-          score = run[[21]]
+          score = run[[21]],
+          pool = card_name
         )
         df <- rbind(df, row) 
       }
@@ -1324,9 +1330,64 @@ ggplot(aes(x = iter, y = scores), data = xz) +
 
 ### Database
 
+```{r}
+cards <- c(rep("Bear", 12), 
+           rep("Bee", 8), 
+           rep("Meadow", 20),
+           rep("Trout", 10),
+           rep("Eagle", 8),
+           rep("Rabbit", 8),
+           rep("Dragonfly", 8),
+           rep("Fox", 12),
+           rep("Deer", 12),
+           rep("Stream", 20),
+           rep("Wolf", 12)
+           )
+
+dfly_stream <- c(rep("Bear", 6), 
+           rep("Bee", 4), 
+           rep("Meadow", 10),
+           rep("Trout", 5),
+           rep("Eagle", 4),
+           rep("Rabbit", 4),
+           rep("Dragonfly", 8),
+           rep("Fox", 6),
+           rep("Deer", 6),
+           rep("Stream", 20),
+           rep("Wolf", 6)
+           )
+
+bee_meadow <- c(rep("Bear", 6), 
+           rep("Bee", 8), 
+           rep("Meadow", 20),
+           rep("Trout", 5),
+           rep("Eagle", 4),
+           rep("Rabbit", 4),
+           rep("Dragonfly", 4),
+           rep("Fox", 6),
+           rep("Deer", 6),
+           rep("Stream", 10),
+           rep("Wolf", 6)
+           )
+
+low_eag_rab <- c(rep("Bear", 12), 
+           rep("Bee", 8), 
+           rep("Meadow", 20),
+           rep("Trout", 10),
+           rep("Eagle", 2),
+           rep("Rabbit", 2),
+           rep("Dragonfly", 8),
+           rep("Fox", 12),
+           rep("Deer", 12),
+           rep("Stream", 20),
+           rep("Wolf", 12)
+           )
+```
+
 ```{r, eval=FALSE}
 startTime <- Sys.time()
-db_gen <- multi_mcmc(1000, 2000, "annealing dynamic", 0.9, 200, record_board = TRUE)
+
+db_gen <- multi_mcmc(1000, 2000, "annealing dynamic", 0.9, 200, record_board = TRUE, cards = low_eag_rab, card_name = "low_eagle_rabbit")
 endTime <- Sys.time()
 print(endTime - startTime)
 
@@ -1338,6 +1399,9 @@ write.csv(database_new, here::here("database.csv"), row.names = FALSE)
 
 ```{r, eval=FALSE}
 head(db_gen)
+```
+```{r}
+database_new <- database_new %>% mutate(score = as.numeric(score))
 ```
 
 ```{r, eval=FALSE}
