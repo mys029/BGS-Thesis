@@ -1422,6 +1422,11 @@ database_new <- database_new %>% distinct()
 ```
 
 ```{r}
+database_new <- read.csv(here::here("database.csv"))
+```
+
+
+```{r}
 database_new %>%
   mutate(score = as.numeric(score)) %>%
   filter(pool == "default") %>%
