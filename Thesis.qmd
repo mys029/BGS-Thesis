@@ -1421,6 +1421,37 @@ write.csv(database_new, here::here("database.csv"), row.names = FALSE)
 database_new <- database_new %>% distinct()
 ```
 
+```{r}
+database_new %>%
+  mutate(score = as.numeric(score)) %>%
+  filter(pool == "default") %>%
+  ggplot(aes(x = score)) +
+  geom_histogram(binwidth = 3, fill = "steelblue", color = "black")
+```
+
+```{r}
+database_new %>%
+  mutate(score = as.numeric(score)) %>%
+  filter(pool == "dragonfly_stream") %>%
+  ggplot(aes(x = score)) +
+  geom_histogram(binwidth = 3, fill = "steelblue", color = "black")
+```
+```{r}
+database_new %>%
+  mutate(score = as.numeric(score)) %>%
+  filter(pool == "bee_meadow") %>%
+  ggplot(aes(x = score)) +
+  geom_histogram(binwidth = 3, fill = "steelblue", color = "black")
+```
+
+
+```{r}
+database_new %>%
+  mutate(score = as.numeric(score)) %>%
+  filter(pool == "low_eagle_rabbit") %>%
+  ggplot(aes(x = score)) +
+  geom_histogram(binwidth = 3, fill = "steelblue", color = "black")
+```
 
 ### Testings
 
