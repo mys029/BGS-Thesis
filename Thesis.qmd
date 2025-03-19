@@ -25,6 +25,14 @@ editor: visual
 #| label: libraries
 
 library(tidyverse)
+library(tidymodels)
+library(glmnet)
+library(discrim)
+library(rpart)
+library(rpart.plot)
+library(baguette)
+library(tidyclust)
+library(caret)
 ```
 
 ## Testing different scoring methods
@@ -1457,6 +1465,71 @@ database_new %>%
   ggplot(aes(x = score)) +
   geom_histogram(binwidth = 3, fill = "steelblue", color = "black")
 ```
+### Clustering
+
+```{r}
+database_new <- read.csv(here::here("database.csv"))
+```
+
+```{r}
+grids <- database_new %>% select(-c(pool))
+
+dmy <- dummyVars(" ~ .", data = grids)
+
+grids <- data.frame(predict(dmy, newdata = grids))
+
+grids_matrix <- as.matrix(grids)
+
+```
+
+
+```{r}
+km_spec1 <- k_means(num_clusters = 4)
+
+grids_recipe <- recipe(~., data = grids_matrix)
+
+km_wflow1 <- workflow() |>
+  add_recipe(grids_recipe) |>
+  add_model(km_spec1)
+
+km_fitted1 <- km_wflow1 |> fit(grids_matrix)
+
+km_fitted1 |> extract_centroids()
+
+grids_km1 <- kmeans(grids_matrix, centers = 4)
+
+grids_km1$totss
+grids_km1$withinss
+grids_km1$betweenss
+```
+
+```{r}
+x <- km_fitted1 |> extract_centroids()
+x
+```
+
+```{r}
+pc <- prcomp(grids_matrix)
+```
+
+```{r}
+cumul_vars <- cumsum(pc$sdev^2)/sum(pc$sdev^2)
+cumul_vars
+```
+
+```{r}
+grids_reduced <- pc$x[, 1:8]
+
+grids_pca_km <- kmeans(grids_reduced, 4)
+
+grids_pca_km$totss
+grids_pca_km$withinss
+grids_pca_km$betweenss
+```
+```{r}
+pc$rotation[,1:2]
+```
+
 
 ### Testings
 
