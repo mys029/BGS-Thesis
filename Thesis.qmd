@@ -1719,7 +1719,7 @@ database_new3 <- database_new %>%
 ```{r, eval=FALSE}
 # Run once
 
-first_row <- score_grid(matrix(c(t(database_new2[1,])),nrow=5,ncol=4,byrow=T), individual=TRUE)
+first_row <- score_grid(matrix(c(t(database_new3[1,])),nrow=5,ncol=4,byrow=T), individual=TRUE)
 
 db_individual <- data.frame(
   bear_score = c(first_row[1]),
@@ -1737,7 +1737,7 @@ db_individual <- data.frame(
 )
 
 for(i in 2:nrow(database_new3)){
-  row <- as.list(score_grid(matrix(c(t(database_new2[i,])),nrow=5,ncol=4,byrow=T), individual=TRUE))
+  row <- as.list(score_grid(matrix(c(t(database_new3[i,])),nrow=5,ncol=4,byrow=T), individual=TRUE))
   db_individual <- rbind(db_individual, row)
 }
 ```
@@ -1752,6 +1752,143 @@ db_individual_removed <- read.csv(here::here("db_individual_lowest_removed.csv")
 
 ```{r}
 individual_matrix <- as.matrix(db_individual_removed)
+```
+
+```{r}
+set.seed(4)
+km_spec3 <- k_means(num_clusters = 3)
+grids_recipe <- recipe(~., data = individual_matrix)
+
+km_wflow3 <- workflow() |>
+  add_recipe(grids_recipe) |>
+  add_model(km_spec3)
+
+km_fitted3 <- km_wflow3 |> fit(individual_matrix)
+
+km_fitted3 |> extract_centroids()
+
+grids_km3 <- kmeans(individual_matrix, centers = 3)
+
+grids_km3$totss
+grids_km3$withinss
+grids_km3$betweenss
+```
+
+```{r}
+set.seed(4)
+km_spec3 <- k_means(num_clusters = 4)
+grids_recipe <- recipe(~., data = individual_matrix)
+
+km_wflow3 <- workflow() |>
+  add_recipe(grids_recipe) |>
+  add_model(km_spec3)
+
+km_fitted3 <- km_wflow3 |> fit(individual_matrix)
+
+km_fitted3 |> extract_centroids()
+
+grids_km3 <- kmeans(individual_matrix, centers = 4)
+
+grids_km3$totss
+grids_km3$withinss
+grids_km3$betweenss
+```
+
+```{r}
+set.seed(4)
+km_spec3 <- k_means(num_clusters = 5)
+grids_recipe <- recipe(~., data = individual_matrix)
+
+km_wflow3 <- workflow() |>
+  add_recipe(grids_recipe) |>
+  add_model(km_spec3)
+
+km_fitted3 <- km_wflow3 |> fit(individual_matrix)
+
+km_fitted3 |> extract_centroids()
+
+grids_km3 <- kmeans(individual_matrix, centers = 5)
+
+grids_km3$totss
+grids_km3$withinss
+grids_km3$betweenss
+```
+
+```{r}
+set.seed(4)
+km_spec3 <- k_means(num_clusters = 6)
+grids_recipe <- recipe(~., data = individual_matrix)
+
+km_wflow3 <- workflow() |>
+  add_recipe(grids_recipe) |>
+  add_model(km_spec3)
+
+km_fitted3 <- km_wflow3 |> fit(individual_matrix)
+
+km_fitted3 |> extract_centroids()
+
+grids_km3 <- kmeans(individual_matrix, centers = 6)
+
+grids_km3$totss
+grids_km3$withinss
+grids_km3$betweenss
+```
+
+```{r}
+set.seed(4)
+km_spec3 <- k_means(num_clusters = 7)
+grids_recipe <- recipe(~., data = individual_matrix)
+
+km_wflow3 <- workflow() |>
+  add_recipe(grids_recipe) |>
+  add_model(km_spec3)
+
+km_fitted3 <- km_wflow3 |> fit(individual_matrix)
+
+km_fitted3 |> extract_centroids()
+
+grids_km3 <- kmeans(individual_matrix, centers = 7)
+
+grids_km3$totss
+grids_km3$withinss
+grids_km3$betweenss
+```
+
+```{r}
+centroids <- km_fitted3 |> extract_centroids()
+centroids
+```
+
+```{r}
+database_lowest_removed <- database_new %>%
+  filter(score > 61)
+```
+
+```{r}
+database3 <- database_lowest_removed %>%
+  mutate(cluster = extract_cluster_assignment(km_fitted3)$.cluster)
+```
+
+```{r}
+database3 %>%
+  group_by(cluster) %>%
+  summarize(mean_score=mean(score),
+            sd_score=sd(score),
+            p25th=quantile(score,probs=0.25),
+            median=quantile(score,probs=0.5),
+            p75th=quantile(score,probs=0.75),
+            count=n(),
+            .groups = 'drop')
+```
+
+#### Normalizing
+
+```{r}
+db_scaled <- data.frame(lapply(db_individual_removed,scale))
+```
+
+```{r}
+individual_matrix <- as.matrix(db_scaled)
 ```
 
 ```{r}
@@ -1881,9 +2018,6 @@ database3 %>%
             count=n(),
             .groups = 'drop')
 ```
-
-#### Normalizing
-
 
 
 ## Testings
