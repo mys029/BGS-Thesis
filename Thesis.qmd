@@ -2062,9 +2062,128 @@ cluster_data %>%
 ## Inferences
 
 ```{r}
+count_prop <- function(card_name, database){
+  df_pos <- data.frame(
+    row1col1 = as.numeric(nrow(database %>% filter(row1col1 == card_name))),
+    row1col2 = as.numeric(nrow(database %>% filter(row1col2 == card_name))),
+    row1col3 = as.numeric(nrow(database %>% filter(row1col3 == card_name))),
+    row1col4 = as.numeric(nrow(database %>% filter(row1col4 == card_name))),
+    row1col5 = as.numeric(nrow(database %>% filter(row1col5 == card_name))),
+    row2col1 = as.numeric(nrow(database %>% filter(row2col1 == card_name))),
+    row2col2 = as.numeric(nrow(database %>% filter(row2col2 == card_name))),
+    row2col3 = as.numeric(nrow(database %>% filter(row2col3 == card_name))),
+    row2col4 = as.numeric(nrow(database %>% filter(row2col4 == card_name))),
+    row2col5 = as.numeric(nrow(database %>% filter(row2col5 == card_name))),
+    row3col1 = as.numeric(nrow(database %>% filter(row3col1 == card_name))),
+    row3col2 = as.numeric(nrow(database %>% filter(row3col2 == card_name))),
+    row3col3 = as.numeric(nrow(database %>% filter(row3col3 == card_name))),
+    row3col4 = as.numeric(nrow(database %>% filter(row3col4 == card_name))),
+    row3col5 = as.numeric(nrow(database %>% filter(row3col5 == card_name))),
+    row4col1 = as.numeric(nrow(database %>% filter(row4col1 == card_name))),
+    row4col2 = as.numeric(nrow(database %>% filter(row4col2 == card_name))),
+    row4col3 = as.numeric(nrow(database %>% filter(row4col3 == card_name))),
+    row4col4 = as.numeric(nrow(database %>% filter(row4col4 == card_name))),
+    row4col5 = as.numeric(nrow(database %>% filter(row4col5 == card_name)))
+  )
+  
+  df_pos_per <- apply(df_pos, 1, function(x) x/sum(x))
 
+  row <- c("row1", "row2", "row3", "row4")
+  col <- c("col1", "col2", "col3", "col4", "col5")
+  df_hm <- expand.grid(col = col, row = row)
+  df_hm <- df_hm %>%
+    mutate(proportion = df_pos_per[,1])
+  
+  return(df_hm)
+  
+}
 ```
 
+```{r}
+# bear_pos <- data.frame(
+#   row1col1 = as.numeric(nrow(database_new %>% filter(row1col1 == "Bear"))),
+#   row1col2 = as.numeric(nrow(database_new %>% filter(row1col2 == "Bear"))),
+#   row1col3 = as.numeric(nrow(database_new %>% filter(row1col3 == "Bear"))),
+#   row1col4 = as.numeric(nrow(database_new %>% filter(row1col4 == "Bear"))),
+#   row1col5 = as.numeric(nrow(database_new %>% filter(row1col5 == "Bear"))),
+#   row2col1 = as.numeric(nrow(database_new %>% filter(row2col1 == "Bear"))),
+#   row2col2 = as.numeric(nrow(database_new %>% filter(row2col2 == "Bear"))),
+#   row2col3 = as.numeric(nrow(database_new %>% filter(row2col3 == "Bear"))),
+#   row2col4 = as.numeric(nrow(database_new %>% filter(row2col4 == "Bear"))),
+#   row2col5 = as.numeric(nrow(database_new %>% filter(row2col5 == "Bear"))),
+#   row3col1 = as.numeric(nrow(database_new %>% filter(row3col1 == "Bear"))),
+#   row3col2 = as.numeric(nrow(database_new %>% filter(row3col2 == "Bear"))),
+#   row3col3 = as.numeric(nrow(database_new %>% filter(row3col3 == "Bear"))),
+#   row3col4 = as.numeric(nrow(database_new %>% filter(row3col4 == "Bear"))),
+#   row3col5 = as.numeric(nrow(database_new %>% filter(row3col5 == "Bear"))),
+#   row4col1 = as.numeric(nrow(database_new %>% filter(row4col1 == "Bear"))),
+#   row4col2 = as.numeric(nrow(database_new %>% filter(row4col2 == "Bear"))),
+#   row4col3 = as.numeric(nrow(database_new %>% filter(row4col3 == "Bear"))),
+#   row4col4 = as.numeric(nrow(database_new %>% filter(row4col4 == "Bear"))),
+#   row4col5 = as.numeric(nrow(database_new %>% filter(row4col5 == "Bear")))
+# )
+# 
+# bear_pos_per <- apply(bear_pos, 1, function(x) x/sum(x))
+# 
+# row <- c("row1", "row2", "row3", "row4")
+# col <- c("col1", "col2", "col3", "col4", "col5")
+# bear_hm <- expand.grid(col = col, row = row)
+# bear_hm <- bear_hm %>%
+#   mutate(proportion = bear_pos_per[,1])
+```
+
+```{r}
+make_heatmap <- function(df, title){
+  ggplot(aes(x=col, y=row, fill=proportion), data=df) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  labs(title=title)
+}
+```
+
+```{r}
+make_heatmap(count_prop("Bear", database_new), "Bear")
+```
+```{r}
+make_heatmap(count_prop("Bee", database_new), "Bee")
+```
+
+```{r}
+make_heatmap(count_prop("Meadow", database_new), "Meadow")
+```
+
+```{r}
+make_heatmap(count_prop("Trout", database_new), "Trout")
+```
+
+```{r}
+make_heatmap(count_prop("Eagle", database_new), "Eagle")
+```
+
+```{r}
+make_heatmap(count_prop("Rabbit", database_new), "Rabbit")
+```
+
+```{r}
+make_heatmap(count_prop("Dragonfly", database_new), "Dragonfly")
+```
+
+```{r}
+make_heatmap(count_prop("Fox", database_new), "Fox")
+```
+
+```{r}
+make_heatmap(count_prop("Deer", database_new), "Deer")
+```
+
+```{r}
+make_heatmap(count_prop("Stream", database_new), "Stream")
+```
+
+```{r}
+make_heatmap(count_prop("Wolf", database_new), "Wolf")
+```
 
 ## Testings
 
