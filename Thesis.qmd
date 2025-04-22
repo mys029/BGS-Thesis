@@ -1192,6 +1192,7 @@ test_grid1 <- matrix(c("x", "Bee", "Meadow", "x", "x", "x", "Meadow", "Meadow", 
                       "x"),4,5,byrow=TRUE)
 test_grid1
 ```
+
 ```{r, eval=FALSE}
 set.seed(4)
 partial1 <- multi_mcmc(1000, 100, "annealing", 0.8, 200, test_grid1)
@@ -1215,7 +1216,6 @@ min(partial1[[2]])
 summary(partial1[[2]])
 summary(partial1[[3]])
 ```
-
 
 ## Tuning
 
@@ -1349,7 +1349,6 @@ new_params <- rbind(tuned_params1, tune1)
 write.csv(new_params,here::here("new-parameters.csv"), row.names = FALSE)
 ```
 
-
 ```{r}
 set.seed(45)
 sim_grid1 <- generate_grid(cards)
@@ -1434,6 +1433,7 @@ write.csv(database_new, here::here("database.csv"), row.names = FALSE)
 ```{r, eval=FALSE}
 head(db_gen)
 ```
+
 ```{r}
 database_new <- database_new %>% mutate(score = as.numeric(score))
 ```
@@ -1459,7 +1459,6 @@ database_new <- database_new %>% distinct()
 database_new <- read.csv(here::here("database.csv"))
 ```
 
-
 ```{r}
 database_new %>%
   mutate(score = as.numeric(score)) %>%
@@ -1475,6 +1474,7 @@ database_new %>%
   ggplot(aes(x = score)) +
   geom_histogram(binwidth = 3, fill = "steelblue", color = "black")
 ```
+
 ```{r}
 database_new %>%
   mutate(score = as.numeric(score)) %>%
@@ -1483,7 +1483,6 @@ database_new %>%
   geom_histogram(binwidth = 3, fill = "steelblue", color = "black")
 ```
 
-
 ```{r}
 database_new %>%
   mutate(score = as.numeric(score)) %>%
@@ -1491,14 +1490,25 @@ database_new %>%
   ggplot(aes(x = score)) +
   geom_histogram(binwidth = 3, fill = "steelblue", color = "black")
 ```
+
 ## Clustering
+
+```{r}
+# database_new <- read.csv(here::here("database.csv"))
+# 
+# database_new_ID <- database_new %>%
+#   mutate(ID = rep(1:50000)) %>%
+#   select(ID, 1:22)
+# 
+# write.csv(database_new_ID, here::here("database.csv"), row.names = FALSE)
+```
 
 ```{r}
 database_new <- read.csv(here::here("database.csv"))
 ```
 
 ```{r}
-grids <- database_new %>% select(-c(pool))
+grids <- database_new %>% select(-c(ID, pool))
 
 dmy <- dummyVars(" ~ .", data = grids)
 
@@ -1552,17 +1562,18 @@ grids_pca_km$totss
 grids_pca_km$withinss
 grids_pca_km$betweenss
 ```
+
 ```{r}
 pc$rotation[,1:2]
 ```
 
-### With socre removed
+### With score removed
 
 ```{r}
 # No lowest
 grids <- database_new %>%
   filter(score > 61) %>%
-  select(-c(pool))
+  select(-c(ID, pool))
 
 dmy <- dummyVars(" ~ .", data = grids)
 
@@ -1702,18 +1713,17 @@ database1 %>%
 ### With individual scores and lowest removed
 
 ```{r}
-database_new2 <- database_new %>% select(-c(pool,score))
-```
-
-```{r}
 summary(database_new$score)
 ```
-
 
 ```{r}
 database_new3 <- database_new %>%
   filter(score > 61) %>%
-  select(-c(pool,score))
+  select(-c(ID,pool,score))
+
+ID_cols <- database_new %>%
+  filter(score > 61) %>%
+  select(ID)
 ```
 
 ```{r, eval=FALSE}
@@ -1742,15 +1752,25 @@ for(i in 2:nrow(database_new3)){
 }
 ```
 
+```{r}
+# db_individual_ID <- db_individual %>%
+#   mutate(ID = ID_cols$ID) %>%
+#   select(ID, 1:12)
+# 
+# write.csv(db_individual_ID, here::here("db_individual_lowest_removed.csv"), row.names = FALSE)
+```
+
+
 ```{r, eval=FALSE}
 # write.csv(db_individual, here::here("db_individual_lowest_removed.csv"), row.names = FALSE)
 ```
 
 ```{r}
 db_individual_removed <- read.csv(here::here("db_individual_lowest_removed.csv"))
-```
 
-```{r}
+db_individual_removed <- db_individual_removed %>%
+  select(-ID)
+
 individual_matrix <- as.matrix(db_individual_removed)
 ```
 
@@ -1884,6 +1904,13 @@ database3 %>%
 #### Normalizing
 
 ```{r}
+db_individual_removed <- read.csv(here::here("db_individual_lowest_removed.csv"))
+
+db_individual_removed <- db_individual_removed %>%
+  select(-ID)
+```
+
+```{r}
 db_scaled <- data.frame(lapply(db_individual_removed,scale))
 ```
 
@@ -2001,15 +2028,27 @@ database_lowest_removed <- database_new %>%
   filter(score > 61)
 ```
 
-
 ```{r}
-database3 <- database_lowest_removed %>%
-  mutate(cluster = extract_cluster_assignment(km_fitted3)$.cluster)
+# database3 <- database_lowest_removed %>%
+#   mutate(`7cluster` = extract_cluster_assignment(km_fitted3)$.cluster)
 ```
 
 ```{r}
-database3 %>%
-  group_by(cluster) %>%
+database3 <- database3 %>%
+  mutate(`3cluster` = extract_cluster_assignment(km_fitted3)$.cluster)
+```
+
+```{r}
+# write.csv(database3, here::here("normalized_clusters.csv"), row.names = FALSE)
+```
+
+```{r}
+cluster_data <- read.csv(here::here("normalized_clusters.csv"))
+```
+
+```{r}
+cluster_data %>%
+  group_by(X7cluster) %>%
   summarize(mean_score=mean(score),
             sd_score=sd(score),
             p25th=quantile(score,probs=0.25),
@@ -2017,6 +2056,13 @@ database3 %>%
             p75th=quantile(score,probs=0.75),
             count=n(),
             .groups = 'drop')
+```
+
+
+## Inferences
+
+```{r}
+
 ```
 
 
@@ -2091,4 +2137,3 @@ baseline_data <- data.frame(baseline_scores)
 ggplot(aes(x = baseline_scores), data = baseline_data) +
   geom_histogram(binwidth = 5, fill = "steelblue")
 ```
-
