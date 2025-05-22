@@ -34,6 +34,8 @@ library(baguette)
 library(tidyclust)
 library(caret)
 library(RColorBrewer)
+library(Polychrome)
+library(forcats)
 ```
 
 ## Grid Setup
@@ -450,7 +452,9 @@ score_grid <- function(grid, individual=FALSE){
       if (grid[k[1],k[2]] == "Stream"){
         for (s in stream_patch){
           if((list(k) %in% s) == TRUE){
-            current_score = 2 * length(s)
+            # OLD scoring below, incorrect
+            # current_score = 2 * length(s)
+            current_score = length(s) # NEW scoring, corrected
             if (current_score > largest_score){
               largest_score = current_score
             }
@@ -701,6 +705,7 @@ baseline_sim <- function(cards, n = 10000){
 ```{r}
 rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 0, bp = 500, original = NULL, record_board = FALSE){
   start_score <- solo_score(score_grid(grid))
+  start_grid <- grid
   current_grid <- grid
   continue <- TRUE
   rows <- rep(1:nrow(grid))
@@ -873,7 +878,7 @@ rw_mcmc <- function(grid, iterations = 1000, acceptance_func = "simple", beta = 
     }
   
   if(record_board == TRUE){
-    return(c(t(highest_grid), highest_score))
+    return(c(t(highest_grid), highest_score, t(start_grid), start_score))
   }else{
     return(c(highest_score, final_score, start_score, highest_iter, data.frame(score_vector)))
   }
@@ -899,7 +904,9 @@ multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp =
            rep("Stream", 20),
            rep("Wolf", 12)
            )
-    card_name = "default"
+    if(is.null(card_name) == TRUE){
+      card_name = "default"
+    }
   }
   
   
@@ -971,7 +978,28 @@ multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp =
           row4col4 = run[[19]],
           row4col5 = run[[20]],
           score = run[[21]],
-          pool = card_name
+          pool = card_name,
+          start_score = run[[42]],
+          row1col1_s = run[[22]],
+          row1col2_s = run[[23]],
+          row1col3_s = run[[24]],
+          row1col4_s = run[[25]],
+          row1col5_s = run[[26]],
+          row2col1_s = run[[27]],
+          row2col2_s = run[[28]],
+          row2col3_s = run[[29]],
+          row2col4_s = run[[30]],
+          row2col5_s = run[[31]],
+          row3col1_s = run[[32]],
+          row3col2_s = run[[33]],
+          row3col3_s = run[[34]],
+          row3col4_s = run[[35]],
+          row3col5_s = run[[36]],
+          row4col1_s = run[[37]],
+          row4col2_s = run[[38]],
+          row4col3_s = run[[39]],
+          row4col4_s = run[[40]],
+          row4col5_s = run[[41]]
         )
         
       }else{
@@ -997,7 +1025,28 @@ multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp =
           row4col4 = run[[19]],
           row4col5 = run[[20]],
           score = run[[21]],
-          pool = card_name
+          pool = card_name,
+          start_score = run[[42]],
+          row1col1_s = run[[22]],
+          row1col2_s = run[[23]],
+          row1col3_s = run[[24]],
+          row1col4_s = run[[25]],
+          row1col5_s = run[[26]],
+          row2col1_s = run[[27]],
+          row2col2_s = run[[28]],
+          row2col3_s = run[[29]],
+          row2col4_s = run[[30]],
+          row2col5_s = run[[31]],
+          row3col1_s = run[[32]],
+          row3col2_s = run[[33]],
+          row3col3_s = run[[34]],
+          row3col4_s = run[[35]],
+          row3col5_s = run[[36]],
+          row4col1_s = run[[37]],
+          row4col2_s = run[[38]],
+          row4col3_s = run[[39]],
+          row4col4_s = run[[40]],
+          row4col5_s = run[[41]]
         )
         df <- rbind(df, row) 
       }
@@ -1232,7 +1281,7 @@ tune <- function(iter, beta, bp, type, boardlist = NULL){
   highest_iter_sd <- c()
   max_highest <- c()
   percentile_90 <- c()
-  score_75_plus <- c()
+  score_65_plus <- c()
   for(i in beta){
     for (j in bp){
       for(k in iter){
@@ -1252,7 +1301,7 @@ tune <- function(iter, beta, bp, type, boardlist = NULL){
         max_highest <- c(max_highest, max(sim[[2]]))
         percentile_90 <- c(percentile_90, quantile(sim[[2]],probs=0.9))
         s <- sim[[2]]
-        score_75_plus <- c(score_75_plus, length(s[s>=75]))
+        score_65_plus <- c(score_65_plus, length(s[s>=65]))
       }
       
     }
@@ -1267,7 +1316,7 @@ tune <- function(iter, beta, bp, type, boardlist = NULL){
     sd_highest_score = highest_score_sd,
     max_score = max_highest,
     score_90th_percent = percentile_90,
-    score_75_plus = score_75_plus,
+    score_65_plus = score_65_plus,
     average_iterations = iter_at_highest,
     sd_iterations = highest_iter_sd,
     type = type
@@ -1307,6 +1356,18 @@ set.seed(89)
 board100 <- generate_100(cards)
 ```
 
+### OLD scoring function
+
+```{r}
+OLD <- multi_mcmc(1000, 100, "annealing dynamic", 0.9, 200, record_board = TRUE, boardlist = board100)
+```
+
+### NEW scoring function
+
+```{r}
+NEW <- multi_mcmc(1000, 100, "annealing dynamic", 0.9, 200, record_board = TRUE, boardlist = board100)
+```
+
 ```{r, eval=FALSE}
 tune_exact1 <- tune(1000, 0.99, 250, "annealing dynamic", boardlist = board100)
 tune_exact2 <- tune(1000, 0.9, 200, "annealing dynamic", boardlist = board100)
@@ -1334,7 +1395,7 @@ final_params <- rbind(tune_exact1,
                       tune_exact10,
                       tune_exact11)
 
-write.csv(final_params,here::here("final-parameters-seed2.csv"), row.names = FALSE)
+write.csv(final_params,here::here("final-parameters-CORRECTED-seed2.csv"), row.names = FALSE)
 ```
 
 ```{r, eval=FALSE}
@@ -1342,7 +1403,11 @@ write.csv(final_params,here::here("final-parameters-seed2.csv"), row.names = FAL
 ```
 
 ```{r, eval=FALSE}
-tuned_params1 <- read.csv(here::here("final-parameters.csv"))
+tuned_params1 <- read.csv(here::here("final-parameters-CORRECTED.csv"))
+```
+
+```{r}
+tuned_params2 <- read.csv(here::here("final-parameters-CORRECTED-seed2.csv"))
 ```
 
 ```{r, eval=FALSE}
@@ -1418,17 +1483,133 @@ low_eag_rab <- c(rep("Bear", 12),
            )
 ```
 
+### Shuffle old database
+
+```{r}
+database_INCORRECT <- read.csv(here::here("database.csv"))
+database_INCORRECT <- database_INCORRECT %>%
+  arrange(pool)
+```
+
+```{r}
+dist <- database_INCORRECT %>% 
+  group_by(pool) %>%
+  summarize(count = n())
+dist
+```
+
+```{r}
+ID_NEW <- database_INCORRECT %>% 
+  select(ID)
+
+database_INCORRECT <- database_INCORRECT %>% 
+  select(2:21)
+```
+
+```{r}
+shuffle <- function(df) {
+
+  shuffled_df <- as.data.frame(t(apply(df, 1, sample)))
+  
+  colnames(shuffled_df) <- colnames(df)
+  
+  if (!is.null(rownames(df))) {
+    rownames(shuffled_df) <- rownames(df)
+  }
+  
+  return(shuffled_df)
+}
+```
+
+```{r}
+set.seed(88)
+shuffled_incorrect <- shuffle(database_INCORRECT)
+```
+
+```{r}
+# write.csv(shuffled_incorrect, here::here("shuffled_database.csv"), row.names = FALSE)
+```
+
+```{r}
+shuffled_incorrect <- read.csv(here::here("shuffled_database.csv"))
+```
+
+### Convert to function ready
+
+```{r}
+df_to_matrix_list <- function(df) {
+  if (ncol(df) != 20) {
+    stop("Dataframe must have exactly 20 columns")
+  }
+  
+  matrix_list <- lapply(1:nrow(df), function(i) {
+    matrix(as.character(df[i, ]),  # Keep as character
+           nrow = 4, 
+           ncol = 5, 
+           byrow = TRUE,
+           dimnames = list(NULL, paste0("col", 1:5)))  # Optional column names
+  })
+  
+  if (!is.null(rownames(df))) {
+    names(matrix_list) <- rownames(df)
+  }
+  
+  return(matrix_list)
+}
+```
+
+```{r}
+shuffled_grid_list <- df_to_matrix_list(shuffled_incorrect)
+```
+
+### First Time
+
 ```{r, eval=FALSE}
 startTime <- Sys.time()
 
-db_gen <- multi_mcmc(1000, 2000, "annealing dynamic", 0.9, 200, record_board = TRUE, cards = low_eag_rab, card_name = "low_eagle_rabbit")
+db_gen <- multi_mcmc(1000, 100, "annealing dynamic", 0.9, 200, record_board = TRUE, 
+                     boardlist=shuffled_grid_list[names(shuffled_grid_list)[1:100]], 
+                     card_name = "bee_meadow")
 endTime <- Sys.time()
 print(endTime - startTime)
 
-database_old <- read.csv(here::here("database.csv"))
+write.csv(db_gen, here::here("database-CORRECTED.csv"), row.names = FALSE)
+```
+```{r}
+#delete chunk
+temp <- df_to_matrix_list(db_gen[1:20])
+score_grid(matrix(c(t(db_gen[17,1:20])),nrow=4,ncol=5,byrow=T), individual=TRUE)
+
+#   bear_score = c(first_row[1]),
+#   bee_score = c(first_row[2]),
+#   meadow_score = c(first_row[3]),
+#   trout_score = c(first_row[4]),
+#   eagle_score = c(first_row[5]),
+#   rabbit_score = c(first_row[6]),
+#   dragonfly_score = c(first_row[7]),
+#   fox_score = c(first_row[8]),
+#   deer_score = c(first_row[9]),
+#   stream_score = c(first_row[10]),
+#   wolves_score = c(first_row[11]),
+#   dv_score = c(first_row[12])
+```
+
+
+### Subsequent
+
+```{r, eval=FALSE}
+startTime <- Sys.time()
+
+db_gen <- multi_mcmc(1000, 4000, "annealing dynamic", 0.9, 200, record_board = TRUE,
+                     boardlist=shuffled_grid_list[names(shuffled_grid_list)[46001:50000]], 
+                     card_name = "low_eagle_rabbit")
+endTime <- Sys.time()
+print(endTime - startTime)
+
+database_old <- read.csv(here::here("database-CORRECTED.csv"))
 database_new <- rbind(database_old, db_gen)
 database_new <- database_new %>% distinct()
-write.csv(database_new, here::here("database.csv"), row.names = FALSE)
+write.csv(database_new, here::here("database-CORRECTED.csv"), row.names = FALSE)
 ```
 
 ```{r, eval=FALSE}
@@ -1436,29 +1617,29 @@ head(db_gen)
 ```
 
 ```{r}
-database_new <- database_new %>% mutate(score = as.numeric(score))
-```
-
-```{r, eval=FALSE}
-# write.csv(db_gen, here::here("database.csv"), row.names = FALSE)
-```
-
-```{r, eval=FALSE}
-database_old <- read.csv(here::here("database.csv"))
-```
-
-```{r, eval=FALSE}
-database_new <- rbind(database_old, db_gen)
-write.csv(database_new, here::here("database.csv"), row.names = FALSE)
-```
-
-```{r, eval=FALSE}
-database_new <- database_new %>% distinct()
+database_new <- read.csv(here::here("database-CORRECTED.csv"))
 ```
 
 ```{r}
-database_new <- read.csv(here::here("database.csv"))
+dist2 <- database_new %>%
+  group_by(pool) %>%
+  summarize(count = n())
+dist2
 ```
+
+
+```{r}
+# Add the original IDs back
+
+database_new_ID <- database_new %>%
+  mutate(ID = ID_NEW$ID) %>%
+  select(ID, 1:43) %>%
+  arrange(ID)
+
+# write.csv(database_new_ID, here::here("database-CORRECTED.csv"), row.names = FALSE)
+```
+
+### Displays
 
 ```{r}
 database_new %>%
@@ -1505,7 +1686,25 @@ database_new %>%
 ```
 
 ```{r}
-database_new <- read.csv(here::here("database.csv"))
+# database <- read.csv(here::here("database-CORRECTED.csv"))
+```
+
+```{r}
+# database_new <- database %>%
+#   select(1:23)
+# 
+# write.csv(database_new, here::here("database-CORRECTED-a.csv"), row.names = FALSE)
+```
+
+```{r}
+# database_start <- database %>%
+#   select(1,25:44,24)
+# 
+# write.csv(database_start, here::here("database-CORRECTED-s.csv"), row.names = FALSE)
+```
+
+```{r}
+database_new <- read.csv(here::here("database-CORRECTED-a.csv"))
 ```
 
 ```{r}
@@ -1573,7 +1772,7 @@ pc$rotation[,1:2]
 ```{r}
 # No lowest
 grids <- database_new %>%
-  filter(score > 61) %>%
+  filter(score > 57) %>%
   select(-c(ID, pool))
 
 dmy <- dummyVars(" ~ .", data = grids)
@@ -1589,7 +1788,7 @@ noscore_matrix <- as.matrix(grids_noscore)
 ```
 
 ```{r}
-# write.csv(grids_noscore, here::here("grids_noscore.csv"), row.names = FALSE)
+# write.csv(grids_noscore, here::here("grids_noscore-CORRECTED.csv"), row.names = FALSE)
 ```
 
 
@@ -1694,17 +1893,75 @@ grids_km2$betweenss
 ```
 
 ```{r}
+set.seed(4)
+km_spec2 <- k_means(num_clusters = 8)
+grids_recipe <- recipe(~., data = noscore_matrix)
+
+km_wflow2 <- workflow() |>
+  add_recipe(grids_recipe) |>
+  add_model(km_spec2)
+
+km_fitted2 <- km_wflow2 |> fit(noscore_matrix)
+
+km_fitted2 |> extract_centroids()
+
+grids_km2 <- kmeans(noscore_matrix, centers = 8)
+
+grids_km2$totss
+grids_km2$withinss
+grids_km2$betweenss
+```
+
+```{r}
+km_fitted2 |> extract_centroids()
+```
+
+```{r}
 km_fitted2 %>% extract_cluster_assignment()
 ```
 
 ```{r}
+database_new %>%
+  summarize(mean_score=mean(score),
+            sd_score=sd(score),
+            p25th=quantile(score,probs=0.25),
+            median=quantile(score,probs=0.5),
+            p75th=quantile(score,probs=0.75),
+            count=n())
+```
+
+
+```{r}
 database_lowest_removed <- database_new %>%
-  filter(score > 61)
+  filter(score > 57)
 ```
 
 ```{r}
 database1 <- database_lowest_removed %>%
-  mutate(cluster = extract_cluster_assignment(km_fitted2)$.cluster)
+  mutate(`7cluster` = extract_cluster_assignment(km_fitted2)$.cluster)
+```
+
+```{r}
+summarized <- database1 %>%
+  group_by(`7cluster`) %>%
+  summarise(mean_score=mean(score),
+            sd_score=sd(score),
+            .groups = 'drop') 
+summarized
+```
+
+```{r}
+write.csv(summarized, here::here("score_removed_c_summary.csv"), row.names = FALSE)
+```
+
+
+```{r}
+database1 %>%
+  group_by(cluster) %>%
+  summarise(mean_score=mean(score),
+            sd_score=sd(score),
+            count=n(),
+            .groups = 'drop') 
 ```
 
 ```{r}
@@ -1713,8 +1970,9 @@ database1 %>%
   summarise(mean_score=mean(score),
             sd_score=sd(score),
             count=n(),
-            .groups = 'drop')
+            .groups = 'drop') 
 ```
+
 
 ### With individual scores and lowest removed
 
@@ -1724,38 +1982,38 @@ summary(database_new$score)
 
 ```{r}
 database_new3 <- database_new %>%
-  filter(score > 61) %>%
+  filter(score > 57) %>%
   select(-c(ID,pool,score))
 
 ID_cols <- database_new %>%
-  filter(score > 61) %>%
+  filter(score > 57) %>%
   select(ID)
 ```
 
 ```{r, eval=FALSE}
 # Run once
 
-first_row <- score_grid(matrix(c(t(database_new3[1,])),nrow=4,ncol=5,byrow=T), individual=TRUE)
-
-db_individual <- data.frame(
-  bear_score = c(first_row[1]),
-  bee_score = c(first_row[2]),
-  meadow_score = c(first_row[3]),
-  trout_score = c(first_row[4]),
-  eagle_score = c(first_row[5]),
-  rabbit_score = c(first_row[6]),
-  dragonfly_score = c(first_row[7]),
-  fox_score = c(first_row[8]),
-  deer_score = c(first_row[9]),
-  stream_score = c(first_row[10]),
-  wolves_score = c(first_row[11]),
-  dv_score = c(first_row[12])
-)
-
-for(i in 2:nrow(database_new3)){
-  row <- as.list(score_grid(matrix(c(t(database_new3[i,])),nrow=4,ncol=5,byrow=T), individual=TRUE))
-  db_individual <- rbind(db_individual, row)
-}
+# first_row <- score_grid(matrix(c(t(database_new3[1,])),nrow=4,ncol=5,byrow=T), individual=TRUE)
+# 
+# db_individual <- data.frame(
+#   bear_score = c(first_row[1]),
+#   bee_score = c(first_row[2]),
+#   meadow_score = c(first_row[3]),
+#   trout_score = c(first_row[4]),
+#   eagle_score = c(first_row[5]),
+#   rabbit_score = c(first_row[6]),
+#   dragonfly_score = c(first_row[7]),
+#   fox_score = c(first_row[8]),
+#   deer_score = c(first_row[9]),
+#   stream_score = c(first_row[10]),
+#   wolves_score = c(first_row[11]),
+#   dv_score = c(first_row[12])
+# )
+# 
+# for(i in 2:nrow(database_new3)){
+#   row <- as.list(score_grid(matrix(c(t(database_new3[i,])),nrow=4,ncol=5,byrow=T), individual=TRUE))
+#   db_individual <- rbind(db_individual, row)
+# }
 ```
 
 ```{r}
@@ -1763,7 +2021,7 @@ for(i in 2:nrow(database_new3)){
 #   mutate(ID = ID_cols$ID) %>%
 #   select(ID, 1:12)
 # 
-# write.csv(db_individual_ID, here::here("db_individual_lowest_removed.csv"), row.names = FALSE)
+# write.csv(db_individual_ID, here::here("db_individual_lowest_removed-CORRECTED.csv"), row.names = FALSE)
 ```
 
 ```{r}
@@ -1905,7 +2163,7 @@ database3 %>%
 #### Normalizing
 
 ```{r}
-db_individual_removed <- read.csv(here::here("db_individual_lowest_removed.csv"))
+db_individual_removed <- read.csv(here::here("db_individual_lowest_removed-CORRECTED.csv"))
 
 db_individual_removed <- db_individual_removed %>%
   select(-ID)
@@ -1939,6 +2197,7 @@ grids_km3$withinss
 grids_km3$betweenss
 ```
 
+
 ```{r}
 set.seed(4)
 km_spec3 <- k_means(num_clusters = 4)
@@ -1958,6 +2217,7 @@ grids_km3$totss
 grids_km3$withinss
 grids_km3$betweenss
 ```
+
 
 ```{r}
 set.seed(4)
@@ -1999,6 +2259,7 @@ grids_km3$withinss
 grids_km3$betweenss
 ```
 
+
 ```{r}
 set.seed(4)
 km_spec3 <- k_means(num_clusters = 7)
@@ -2020,13 +2281,133 @@ grids_km3$betweenss
 ```
 
 ```{r}
-centroids <- km_fitted3 |> extract_centroids()
-centroids
+set.seed(4)
+km_spec3 <- k_means(num_clusters = 8)
+grids_recipe <- recipe(~., data = individual_matrix)
+
+km_wflow3 <- workflow() |>
+  add_recipe(grids_recipe) |>
+  add_model(km_spec3)
+
+km_fitted3 <- km_wflow3 |> fit(individual_matrix)
+
+km_fitted3 |> extract_centroids()
+
+grids_km3 <- kmeans(individual_matrix, centers = 8)
+
+grids_km3$totss
+grids_km3$withinss
+grids_km3$betweenss
+```
+
+```{r}
+set.seed(4)
+km_spec3 <- k_means(num_clusters = 9)
+grids_recipe <- recipe(~., data = individual_matrix)
+
+km_wflow3 <- workflow() |>
+  add_recipe(grids_recipe) |>
+  add_model(km_spec3)
+
+km_fitted3 <- km_wflow3 |> fit(individual_matrix)
+
+km_fitted3 |> extract_centroids()
+
+grids_km3 <- kmeans(individual_matrix, centers = 9)
+
+grids_km3$totss
+grids_km3$withinss
+grids_km3$betweenss
+```
+
+```{r}
+# wcss <- data.frame(
+#   k = rep(7, 7),
+#   wcss = grids_km3$withinss
+# )
+```
+
+```{r}
+# wcss2 <- data.frame(
+#   k = rep(9, 9),
+#   wcss = grids_km3$withinss
+# )
+# 
+# wcss <- rbind(wcss, wcss2)
+```
+
+```{r}
+# write.csv(wcss, here::here("wcss-CORRECTED.csv"), row.names = FALSE)
+```
+
+```{r}
+wcss <- read.csv(here::here("wcss-CORRECTED.csv"))
 ```
 
 
 ```{r}
-database_new %>% summarize(mean_score=mean(score),
+wcss_means <- wcss %>%
+  group_by(k) %>%
+  summarize(mean = mean(wcss))
+wcss_means
+```
+
+
+```{r}
+ggplot(aes(x = k, y = wcss), data=wcss) +
+  geom_point() +
+  geom_point(aes(x=k, y=mean, color="red"), data=wcss_means) +
+  labs(x = "K", y="Within Cluster Sums of Square") +
+  theme_minimal() +
+  theme(panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank(),
+        legend.position = "none")
+```
+
+
+```{r}
+centroids <- km_fitted3 |> extract_centroids()
+centroids
+```
+
+```{r}
+centroids <- km_fitted3 |> extract_centroids()
+centroids
+```
+
+```{r}
+database_lowest_removed <- database_new %>%
+  filter(score > 57)
+```
+
+```{r}
+database4 <- database_lowest_removed %>%
+  mutate(`7cluster_seed4` = extract_cluster_assignment(km_fitted3)$.cluster)
+```
+
+```{r}
+database4 <- database4 %>%
+  mutate(`7cluster_seed5` = extract_cluster_assignment(km_fitted3)$.cluster)
+```
+
+```{r}
+seed <- database4 %>%
+  group_by(`7cluster_seed41`) %>%
+  summarize(mean_score=mean(score),
+            sd_score=sd(score),
+            .groups = 'drop') %>%
+  arrange(desc(mean_score))
+seed
+```
+
+```{r}
+# write.csv(seed, here::here("7cluster_seed.csv"), row.names = FALSE)
+```
+
+
+```{r}
+database_new %>% 
+  summarize(mean_score=mean(score),
             sd_score=sd(score),
             min=quantile(score, probs=0),
             p25th=quantile(score,probs=0.25),
@@ -2036,9 +2417,11 @@ database_new %>% summarize(mean_score=mean(score),
             )
 ```
 
+#### For database
+
 ```{r}
 database_lowest_removed <- database_new %>%
-  filter(score > 61)
+  filter(score > 57)
 ```
 
 ```{r}
@@ -2048,16 +2431,40 @@ database3 <- database_lowest_removed %>%
 
 ```{r}
 database3 <- database3 %>%
-  mutate(`3cluster` = extract_cluster_assignment(km_fitted3)$.cluster)
+  mutate(`7cluster_s5` = extract_cluster_assignment(km_fitted3)$.cluster)
 ```
 
 ```{r}
-# write.csv(database3, here::here("normalized_clusters.csv"), row.names = FALSE)
+database3 %>%
+  group_by(`6cluster`) %>%
+  summarize(mean_score=mean(score),
+            sd_score=sd(score),
+            p25th=quantile(score,probs=0.25),
+            median=quantile(score,probs=0.5),
+            p75th=quantile(score,probs=0.75),
+            count=n(),
+            .groups = 'drop') %>%
+  arrange(desc(mean_score))
+```
+
+
+
+
+```{r}
+# write.csv(database3, here::here("normalized_clusters-CORRECTED.csv"), row.names = FALSE)
 ```
 
 ```{r}
-cluster_data <- read.csv(here::here("normalized_clusters.csv"))
+cluster_data <- read.csv(here::here("normalized_clusters-CORRECTED.csv"))
 ```
+
+```{r}
+sum((cluster_data %>% select(X6cluster)) == (cluster_data %>% select(X6cluster_s5)))
+sum((cluster_data %>% select(X6cluster)) == (cluster_data %>% select(X6cluster_s6)))
+sum((cluster_data %>% select(X6cluster_s5)) == (cluster_data %>% select(X6cluster_s6)))
+nrow(cluster_data)
+```
+
 
 ```{r}
 cluster_data %>%
@@ -2156,46 +2563,47 @@ make_heatmap <- function(df, title){
 ```
 
 ```{r}
-make_heatmap(count_prop("Bear", database_new), "Bear")
-```
-```{r}
-make_heatmap(count_prop("Bee", database_new), "Bee")
+# make_heatmap(count_prop("Bear", database_new), "Bear")
 ```
 
 ```{r}
-make_heatmap(count_prop("Meadow", database_new), "Meadow")
+# make_heatmap(count_prop("Bee", database_new), "Bee")
 ```
 
 ```{r}
-make_heatmap(count_prop("Trout", database_new), "Trout")
+# make_heatmap(count_prop("Meadow", database_new), "Meadow")
 ```
 
 ```{r}
-make_heatmap(count_prop("Eagle", database_new), "Eagle")
+# make_heatmap(count_prop("Trout", database_new), "Trout")
 ```
 
 ```{r}
-make_heatmap(count_prop("Rabbit", database_new), "Rabbit")
+# make_heatmap(count_prop("Eagle", database_new), "Eagle")
 ```
 
 ```{r}
-make_heatmap(count_prop("Dragonfly", database_new), "Dragonfly")
+# make_heatmap(count_prop("Rabbit", database_new), "Rabbit")
 ```
 
 ```{r}
-make_heatmap(count_prop("Fox", database_new), "Fox")
+# make_heatmap(count_prop("Dragonfly", database_new), "Dragonfly")
 ```
 
 ```{r}
-make_heatmap(count_prop("Deer", database_new), "Deer")
+# make_heatmap(count_prop("Fox", database_new), "Fox")
 ```
 
 ```{r}
-make_heatmap(count_prop("Stream", database_new), "Stream")
+# make_heatmap(count_prop("Deer", database_new), "Deer")
 ```
 
 ```{r}
-make_heatmap(count_prop("Wolf", database_new), "Wolf")
+# make_heatmap(count_prop("Stream", database_new), "Stream")
+```
+
+```{r}
+# make_heatmap(count_prop("Wolf", database_new), "Wolf")
 ```
 
 ```{r}
@@ -2316,7 +2724,12 @@ cluster_prop <- function(Xcluster, cluster_num, database){
         Xcluster == 6 ~ X6cluster == cluster_num,
         Xcluster == 5 ~ X5cluster == cluster_num,
         Xcluster == 4 ~ X4cluster == cluster_num,
-        Xcluster == 3 ~ X3cluster == cluster_num
+        Xcluster == 3 ~ X3cluster == cluster_num,
+        Xcluster == 8 ~ X8cluster == cluster_num,
+        Xcluster == 65 ~ X6cluster_s5 == cluster_num,
+        Xcluster == 66 ~ X6cluster_s6 == cluster_num,
+        Xcluster == 85 ~ X8cluster_s5 == cluster_num,
+        Xcluster == 75 ~ X7cluster_s5 == cluster_num
       )
     )
   
@@ -2631,103 +3044,103 @@ ggplot(aes(x = factor(num_exact),
 Summary statistics for cluster 7
 
 ```{r}
-cluster_table(7, "Cluster_7", cluster_data)
+# cluster_table(7, "Cluster_7", cluster_data)
 ```
 
 Proportion of each card type out of all the cards in the cluster
 
 ```{r}
-make_bars(cluster_prop(7, "Cluster_7", cluster_data), "7Cluster: Cluster_7")
+# make_bars(cluster_prop(7, "Cluster_7", cluster_data), "7Cluster: Cluster_7")
 ```
 
 Distributions of the exact number of each card type out of all grids in the cluster
 
 ```{r}
-make_exact_bars(exact_card_count(7, "Cluster_7", cluster_data), title="7Cluster: Cluster_7")
+# make_exact_bars(exact_card_count(7, "Cluster_7", cluster_data), title="7Cluster: Cluster_7")
 ```
 
 #### Cluster 6
 
 ```{r}
-cluster_table(7, "Cluster_6", cluster_data)
+# cluster_table(7, "Cluster_6", cluster_data)
 ```
 
 ```{r}
-make_bars(cluster_prop(7, "Cluster_6", cluster_data), "7Cluster: Cluster_6")
+# make_bars(cluster_prop(7, "Cluster_6", cluster_data), "7Cluster: Cluster_6")
 ```
 
 ```{r}
-make_exact_bars(exact_card_count(7, "Cluster_6", cluster_data), title="7Cluster: Cluster_6")
+# make_exact_bars(exact_card_count(7, "Cluster_6", cluster_data), title="7Cluster: Cluster_6")
 ```
 
 #### Cluster 3
 
 ```{r}
-cluster_table(7, "Cluster_3", cluster_data)
+# cluster_table(7, "Cluster_3", cluster_data)
 ```
 
 ```{r}
-make_bars(cluster_prop(7, "Cluster_3", cluster_data), "7Cluster: Cluster_3")
+# make_bars(cluster_prop(7, "Cluster_3", cluster_data), "7Cluster: Cluster_3")
 ```
 
 ```{r}
-make_exact_bars(exact_card_count(7, "Cluster_3", cluster_data), title="7Cluster: Cluster_3")
+# make_exact_bars(exact_card_count(7, "Cluster_3", cluster_data), title="7Cluster: Cluster_3")
 ```
 
 #### Cluster 4
 
 ```{r}
-cluster_table(7, "Cluster_4", cluster_data)
+# cluster_table(7, "Cluster_4", cluster_data)
 ```
 
 ```{r}
-make_bars(cluster_prop(7, "Cluster_4", cluster_data), "7Cluster: Cluster_4")
+# make_bars(cluster_prop(7, "Cluster_4", cluster_data), "7Cluster: Cluster_4")
 ```
 
 ```{r}
-make_exact_bars(exact_card_count(7, "Cluster_4", cluster_data), title="7Cluster: Cluster_4")
+# make_exact_bars(exact_card_count(7, "Cluster_4", cluster_data), title="7Cluster: Cluster_4")
 ```
 
 #### Cluster 2
 
 ```{r}
-cluster_table(7, "Cluster_2", cluster_data)
+# cluster_table(7, "Cluster_2", cluster_data)
 ```
 
 ```{r}
-make_bars(cluster_prop(7, "Cluster_2", cluster_data), "7Cluster: Cluster_2")
+# make_bars(cluster_prop(7, "Cluster_2", cluster_data), "7Cluster: Cluster_2")
 ```
 
 ```{r}
-make_exact_bars(exact_card_count(7, "Cluster_2", cluster_data), title="7Cluster: Cluster_2")
+# make_exact_bars(exact_card_count(7, "Cluster_2", cluster_data), title="7Cluster: Cluster_2")
 ```
 
 #### Cluster 1
 
 ```{r}
-cluster_table(7, "Cluster_1", cluster_data)
+# cluster_table(7, "Cluster_1", cluster_data)
 ```
 
 ```{r}
-make_bars(cluster_prop(7, "Cluster_1", cluster_data), "7Cluster: Cluster_1")
+# make_bars(cluster_prop(7, "Cluster_1", cluster_data), "7Cluster: Cluster_1")
 ```
 
 ```{r}
-make_exact_bars(exact_card_count(7, "Cluster_1", cluster_data), title="7Cluster: Cluster_1")
+# make_exact_bars(exact_card_count(7, "Cluster_1", cluster_data), title="7Cluster: Cluster_1")
 ```
 
 #### Cluster 5
 
 ```{r}
-cluster_table(7, "Cluster_5", cluster_data)
+# cluster_table(7, "Cluster_5", cluster_data)
 ```
 
 ```{r}
-make_bars(cluster_prop(7, "Cluster_5", cluster_data), "7Cluster: Cluster_5")
+# make_bars(cluster_prop(7, "Cluster_5", cluster_data), "7Cluster: Cluster_5")
 ```
 
 ```{r}
-make_exact_bars(exact_card_count(7, "Cluster_5", cluster_data), title="7Cluster: Cluster_5")
+# make_exact_bars(exact_card_count(7, "Cluster_5", cluster_data), title="7Cluster: Cluster_5")
 ```
 
 ## Additional Displays
@@ -2742,25 +3155,25 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(overall_position)) +
 ```
 
 ```{r}
-# all_cluster_prop <- rbind(cluster_prop(7, "Cluster_1", cluster_data) %>% mutate(cluster = "Cluster_1"),
-#                           cluster_prop(7, "Cluster_2", cluster_data) %>% mutate(cluster = "Cluster_2"),
-#                           cluster_prop(7, "Cluster_3", cluster_data) %>% mutate(cluster = "Cluster_3"),
-#                           cluster_prop(7, "Cluster_4", cluster_data) %>% mutate(cluster = "Cluster_4"),
-#                           cluster_prop(7, "Cluster_5", cluster_data) %>% mutate(cluster = "Cluster_5"),
-#                           cluster_prop(7, "Cluster_6", cluster_data) %>% mutate(cluster = "Cluster_6"),
-#                           cluster_prop(7, "Cluster_7", cluster_data) %>% mutate(cluster = "Cluster_7")
-#                           )
+all_cluster_prop7_s5 <- rbind(cluster_prop(75, "Cluster_1", cluster_data) %>% mutate(cluster = "Cluster_1"),
+                          cluster_prop(75, "Cluster_2", cluster_data) %>% mutate(cluster = "Cluster_2"),
+                          cluster_prop(75, "Cluster_3", cluster_data) %>% mutate(cluster = "Cluster_3"),
+                          cluster_prop(75, "Cluster_4", cluster_data) %>% mutate(cluster = "Cluster_4"),
+                          cluster_prop(75, "Cluster_5", cluster_data) %>% mutate(cluster = "Cluster_5"),
+                          cluster_prop(75, "Cluster_6", cluster_data) %>% mutate(cluster = "Cluster_6"),
+                          cluster_prop(75, "Cluster_7", cluster_data) %>% mutate(cluster = "Cluster_7")
+                          )
 ```
 
 ```{r}
-all_exact <- rbind(exact_card_count(7, "Cluster_1", cluster_data) %>% mutate(cluster = "Cluster_1"),
-                   exact_card_count(7, "Cluster_2", cluster_data) %>% mutate(cluster = "Cluster_2"),
-                   exact_card_count(7, "Cluster_3", cluster_data) %>% mutate(cluster = "Cluster_3"),
-                   exact_card_count(7, "Cluster_4", cluster_data) %>% mutate(cluster = "Cluster_4"),
-                   exact_card_count(7, "Cluster_5", cluster_data) %>% mutate(cluster = "Cluster_5"),
-                   exact_card_count(7, "Cluster_6", cluster_data) %>% mutate(cluster = "Cluster_6"),
-                   exact_card_count(7, "Cluster_7", cluster_data) %>% mutate(cluster = "Cluster_7")
-                   )
+# all_exact <- rbind(exact_card_count(7, "Cluster_1", cluster_data) %>% mutate(cluster = "Cluster_1"),
+#                    exact_card_count(7, "Cluster_2", cluster_data) %>% mutate(cluster = "Cluster_2"),
+#                    exact_card_count(7, "Cluster_3", cluster_data) %>% mutate(cluster = "Cluster_3"),
+#                    exact_card_count(7, "Cluster_4", cluster_data) %>% mutate(cluster = "Cluster_4"),
+#                    exact_card_count(7, "Cluster_5", cluster_data) %>% mutate(cluster = "Cluster_5"),
+#                    exact_card_count(7, "Cluster_6", cluster_data) %>% mutate(cluster = "Cluster_6"),
+#                    exact_card_count(7, "Cluster_7", cluster_data) %>% mutate(cluster = "Cluster_7")
+#                    )
 ```
 
 ```{r}
@@ -2768,12 +3181,48 @@ all_exact <- rbind(exact_card_count(7, "Cluster_1", cluster_data) %>% mutate(clu
 ```
 
 ```{r}
-# write.csv(all_cluster_prop, here::here("cluster_prop.csv"), row.names = FALSE)
+# write.csv(all_cluster_prop, here::here("cluster_prop6-CORRECTED.csv"), row.names = FALSE)
 ```
 
 ```{r}
-all_cluster_prop <- read.csv(here::here("cluster_prop.csv")) %>%
-  mutate(cluster = factor(cluster, levels = paste0("Cluster_", 1:7)))
+cluster_position_renamed <- cluster_position %>%
+  mutate(
+      cluster = factor(cluster, levels = c(
+      "Cluster_1", "Cluster_2", "Cluster_3", 
+      "Cluster_4", "Cluster_5", "Cluster_6", "Cluster_7"
+    ))) %>%
+    mutate(cluster = fct_recode(cluster,
+      "Bear" = "Cluster_1",
+      "Fox" = "Cluster_2",
+      "Meadow Bee" = "Cluster_3",
+      "Eagle Rabbit" = "Cluster_4",
+      "Wolf" = "Cluster_5",
+      "Stream Trout Dragonfly" = "Cluster_6",
+      "Stream Dragonfly" = "Cluster_7"
+    ))
+```
+
+```{r}
+all_cluster_prop <- read.csv(here::here("cluster_prop6-CORRECTED.csv")) %>%
+  mutate(cluster = factor(cluster, levels = paste0("Cluster_", 1:6)))
+```
+
+```{r}
+all_cluster_prop_renamed <- all_cluster_prop %>%
+    mutate(
+      cluster = factor(cluster, levels = c(
+      "Cluster_1", "Cluster_2", "Cluster_3", 
+      "Cluster_4", "Cluster_5", "Cluster_6", "Cluster_7"
+    ))) %>%
+    mutate(cluster = fct_recode(cluster,
+      "Bear" = "Cluster_1",
+      "Fox" = "Cluster_2",
+      "Meadow Bee" = "Cluster_3",
+      "Eagle Rabbit" = "Cluster_4",
+      "Wolf" = "Cluster_5",
+      "Stream Trout Dragonfly" = "Cluster_6",
+      "Stream Dragonfly" = "Cluster_7"
+    ))
 ```
 
 ```{r}
@@ -2781,7 +3230,43 @@ all_exact <- read.csv(here::here("all_exact.csv"))
 ```
 
 ```{r}
-cluster_data %>%
+all_exact_renamed <- all_exact %>%
+    mutate(
+      cluster = factor(cluster, levels = c(
+      "Cluster_1", "Cluster_2", "Cluster_3", 
+      "Cluster_4", "Cluster_5", "Cluster_6", "Cluster_7"
+    ))) %>%
+    mutate(cluster = fct_recode(cluster,
+      "Bear" = "Cluster_1",
+      "Fox" = "Cluster_2",
+      "Meadow Bee" = "Cluster_3",
+      "Eagle Rabbit" = "Cluster_4",
+      "Wolf" = "Cluster_5",
+      "Stream Trout Dragonfly" = "Cluster_6",
+      "Stream Dragonfly" = "Cluster_7"
+    ))
+```
+
+```{r}
+cluster_data_renamed <- cluster_data %>%
+    mutate(
+      X7cluster = factor(X7cluster, levels = c(
+      "Cluster_1", "Cluster_2", "Cluster_3", 
+      "Cluster_4", "Cluster_5", "Cluster_6", "Cluster_7"
+    ))) %>%
+    mutate(X7cluster = fct_recode(X7cluster,
+      "Bear" = "Cluster_1",
+      "Fox" = "Cluster_2",
+      "Meadow Bee" = "Cluster_3",
+      "Eagle Rabbit" = "Cluster_4",
+      "Wolf" = "Cluster_5",
+      "Stream Trout Dragonfly" = "Cluster_6",
+      "Stream Dragonfly" = "Cluster_7"
+    ))
+```
+
+```{r}
+results_table <- cluster_data %>%
   group_by(X7cluster) %>%
   summarize(mean_score=mean(score),
             sd_score=sd(score),
@@ -2791,33 +3276,323 @@ cluster_data %>%
             count=n(),
             .groups = 'drop') %>%
   arrange(desc(mean_score))
+results_table
+```
+
+```{r}
+# write.csv(results_table, here::here("results_table.csv"), row.names = FALSE)
+```
+
+#### 7 cluster
+
+```{r}
+# write.csv(all_cluster_prop7, here::here("cluster_prop7-CORRECTED.csv"), row.names = FALSE)
+```
+
+```{r}
+all_cluster_prop7 <- read.csv(here::here("cluster_prop7-CORRECTED.csv")) %>%
+  mutate(cluster = factor(cluster, levels = paste0("Cluster_", 1:7)))
+```
+
+```{r}
+# cluster_data_renamed %>%
+#   group_by(X7cluster) %>%
+#   summarize(mean_score=mean(score),
+#             sd_score=sd(score),
+#             p25th=quantile(score,probs=0.25),
+#             median=quantile(score,probs=0.5),
+#             p75th=quantile(score,probs=0.75),
+#             count=n(),
+#             .groups = 'drop') %>%
+#   arrange(desc(mean_score))
 ```
 
 ```{r}
 ggplot(aes(x = reorder(name, -true_prop), 
            y = proportion, 
            fill = reorder(name, -true_prop)), 
-       data=all_cluster_prop) + 
+       data=all_cluster_prop7) + 
   geom_bar(stat = "identity") +
   geom_point(aes(x = reorder(name, -true_prop), y= true_prop),
              color = "red",
-             data=all_cluster_prop,
+             data=all_cluster_prop7,
              show.legend = FALSE) +
-  scale_fill_brewer(palette="PRGn", direction = -1) +
-  labs(x = "card", fill="card type", title="Propotion of card types in each cluster") +
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
+  labs(x = "Card", y = "Proportion", fill="Card Type", title="Propotion of card types in each cluster") +
   theme_minimal() +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(cluster))
+```
+
+#### 7 clust s5
+
+```{r}
+# write.csv(all_cluster_prop7_s5, here::here("cluster_prop7_seed5-CORRECTED.csv"), row.names = FALSE)
+```
+
+```{r}
+all_cluster_prop7_s5 <- read.csv(here::here("cluster_prop7_seed5-CORRECTED.csv")) %>%
+  mutate(cluster = factor(cluster, levels = paste0("Cluster_", 1:7)))
+```
+
+```{r}
+ggplot(aes(x = reorder(name, -true_prop), 
+           y = proportion, 
+           fill = reorder(name, -true_prop)), 
+       data=all_cluster_prop7_s5) + 
+  geom_bar(stat = "identity") +
+  geom_point(aes(x = reorder(name, -true_prop), y= true_prop),
+             color = "red",
+             data=all_cluster_prop7_s5,
+             show.legend = FALSE) +
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
+  labs(x = "Card", y = "Proportion", fill="Card Type", title="Propotion of card types in each cluster") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(cluster))
+```
+
+#### 6 cluster
+
+```{r}
+# write.csv(all_cluster_prop6, here::here("cluster_prop6-CORRECTED.csv"), row.names = FALSE)
+```
+
+```{r}
+all_cluster_prop6 <- read.csv(here::here("cluster_prop6-CORRECTED.csv")) %>%
+  mutate(cluster = factor(cluster, levels = paste0("Cluster_", 1:6)))
+```
+
+```{r}
+ggplot(aes(x = reorder(name, -true_prop), 
+           y = proportion, 
+           fill = reorder(name, -true_prop)), 
+       data=all_cluster_prop6) + 
+  geom_bar(stat = "identity") +
+  geom_point(aes(x = reorder(name, -true_prop), y= true_prop),
+             color = "red",
+             data=all_cluster_prop6,
+             show.legend = FALSE) +
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
+  labs(x = "Card", y = "Proportion", fill="Card Type", title="Propotion of card types in each cluster") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(cluster))
+```
+
+#### 6 clust s5
+
+```{r}
+# write.csv(all_cluster_prop6_s5, here::here("cluster_prop6_seed5-CORRECTED.csv"), row.names = FALSE)
+```
+
+```{r}
+all_cluster_prop6_s5 <- read.csv(here::here("cluster_prop6_seed5-CORRECTED.csv")) %>%
+  mutate(cluster = factor(cluster, levels = paste0("Cluster_", 1:6)))
+```
+
+```{r}
+ggplot(aes(x = reorder(name, -true_prop), 
+           y = proportion, 
+           fill = reorder(name, -true_prop)), 
+       data=all_cluster_prop6_s5) + 
+  geom_bar(stat = "identity") +
+  geom_point(aes(x = reorder(name, -true_prop), y= true_prop),
+             color = "red",
+             data=all_cluster_prop6_s5,
+             show.legend = FALSE) +
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
+  labs(x = "Card", y = "Proportion", fill="Card Type", title="Propotion of card types in each cluster") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(cluster))
+```
+
+#### 6 clust s6
+
+```{r}
+# write.csv(all_cluster_prop6_s6, here::here("cluster_prop6_seed6-CORRECTED.csv"), row.names = FALSE)
+```
+
+```{r}
+all_cluster_prop6_s6 <- read.csv(here::here("cluster_prop6_seed6-CORRECTED.csv")) %>%
+  mutate(cluster = factor(cluster, levels = paste0("Cluster_", 1:6)))
+```
+
+```{r}
+ggplot(aes(x = reorder(name, -true_prop), 
+           y = proportion, 
+           fill = reorder(name, -true_prop)), 
+       data=all_cluster_prop6_s6) + 
+  geom_bar(stat = "identity") +
+  geom_point(aes(x = reorder(name, -true_prop), y= true_prop),
+             color = "red",
+             data=all_cluster_prop6_s6,
+             show.legend = FALSE) +
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
+  labs(x = "Card", y = "Proportion", fill="Card Type", title="Propotion of card types in each cluster") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(cluster))
+```
+
+#### 5 cluster
+
+```{r}
+# write.csv(all_cluster_prop5, here::here("cluster_prop5-CORRECTED.csv"), row.names = FALSE)
+```
+
+```{r}
+all_cluster_prop5 <- read.csv(here::here("cluster_prop5-CORRECTED.csv")) %>%
+  mutate(cluster = factor(cluster, levels = paste0("Cluster_", 1:5)))
+```
+
+```{r}
+ggplot(aes(x = reorder(name, -true_prop), 
+           y = proportion, 
+           fill = reorder(name, -true_prop)), 
+       data=all_cluster_prop5) + 
+  geom_bar(stat = "identity") +
+  geom_point(aes(x = reorder(name, -true_prop), y= true_prop),
+             color = "red",
+             data=all_cluster_prop5,
+             show.legend = FALSE) +
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
+  labs(x = "Card", y = "Proportion", fill="Card Type", title="Propotion of card types in each cluster") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(cluster))
+```
+
+#### 8 cluster
+
+```{r}
+# write.csv(all_cluster_prop8, here::here("cluster_prop8-CORRECTED.csv"), row.names = FALSE)
+```
+
+```{r}
+all_cluster_prop8 <- read.csv(here::here("cluster_prop8-CORRECTED.csv")) %>%
+  mutate(cluster = factor(cluster, levels = paste0("Cluster_", 1:8)))
+```
+
+```{r}
+ggplot(aes(x = reorder(name, -true_prop), 
+           y = proportion, 
+           fill = reorder(name, -true_prop)), 
+       data=all_cluster_prop8) + 
+  geom_bar(stat = "identity") +
+  geom_point(aes(x = reorder(name, -true_prop), y= true_prop),
+             color = "red",
+             data=all_cluster_prop8,
+             show.legend = FALSE) +
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
+  labs(x = "Card", y = "Proportion", fill="Card Type", title="Propotion of card types in each cluster") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(cluster))
+```
+
+#### 8 clust s5
+
+```{r}
+# write.csv(all_cluster_prop8_s5, here::here("cluster_prop8_seed5-CORRECTED.csv"), row.names = FALSE)
+```
+
+```{r}
+all_cluster_prop8_s5 <- read.csv(here::here("cluster_prop8_seed5-CORRECTED.csv")) %>%
+  mutate(cluster = factor(cluster, levels = paste0("Cluster_", 1:8)))
+```
+
+```{r}
+ggplot(aes(x = reorder(name, -true_prop), 
+           y = proportion, 
+           fill = reorder(name, -true_prop)), 
+       data=all_cluster_prop8_s5) + 
+  geom_bar(stat = "identity") +
+  geom_point(aes(x = reorder(name, -true_prop), y= true_prop),
+             color = "red",
+             data=all_cluster_prop8_s5,
+             show.legend = FALSE) +
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
+  labs(x = "Card", y = "Proportion", fill="Card Type", title="Propotion of card types in each cluster") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
   facet_wrap(vars(cluster))
 ```
 
 ```{r}
-ggplot(all_cluster_prop, aes(x = proportion, y = cluster, color = name)) +
+ggplot(aes(x = reorder(name, -true_prop), 
+           y = proportion, 
+           fill = reorder(name, -true_prop)), 
+       data=all_cluster_prop_renamed) + 
+  geom_bar(stat = "identity") +
+  geom_point(aes(x = reorder(name, -true_prop), y= true_prop),
+             color = "red",
+             data=all_cluster_prop_renamed,
+             show.legend = FALSE) +
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
+  labs(x = "card", fill="card type", title="Propotion of card types in each cluster") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(cluster))
+```
+
+
+
+```{r}
+ggplot(all_cluster_prop, aes(x = proportion, y = cluster, color = reorder(name, -true_prop))) +
   geom_point(
     size = 3,
-    alpa = 0.7,
+    alpha = 0.8,
     position = position_jitter(height = 0.2, seed = 110)
   ) +
-  scale_color_brewer(palette = "Paired") +
+  scale_color_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
   labs(
     x = "Proportion", 
     y = "Cluster",
@@ -2826,11 +3601,34 @@ ggplot(all_cluster_prop, aes(x = proportion, y = cluster, color = name)) +
   ) +
   theme_minimal() +
   theme(
-    panel.grid.major.y = element_line(color = "grey90"),
     panel.grid.minor = element_blank(),
-    legend.position = "right"
+    legend.position = "right",
+    panel.grid.major = element_line(color = "black"),
   )
 ```
+
+```{r}
+ggplot(all_cluster_prop_renamed, aes(x = proportion, y = reorder(name, true_prop), color = cluster)) +
+  geom_point(
+    size = 3,
+    position = position_jitter(height = 0.2, seed = 99)
+  ) +
+  scale_color_manual(values = c("#000000", "#ff7f00", "#4daf4a", "#984ea3", "#999999",
+                                "#f781bf", "#66c2a5")) +
+  labs(
+    x = "Proportion", 
+    y = "Card Type",
+    color = "Cluster",
+    title = "Card Proportions by Cluster"
+  ) +
+  theme_minimal() +
+  theme(
+    panel.grid.minor = element_blank(),
+    legend.position = "right",
+    panel.grid.major = element_line(color = "black")
+  )
+```
+
 
 ```{r}
 ggplot(aes(x = cluster,
@@ -2866,7 +3664,39 @@ ggplot(all_exact, aes(x = num_exact, y = proportion, color = cluster)) +
 ```
 
 ```{r}
-ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(card == "Bear"))) +
+ggplot(all_exact_renamed, aes(x = num_exact, y = proportion, color = cluster)) +
+  geom_point() +
+  geom_line(size = 0.5) +
+  facet_wrap(~ card) +
+  scale_x_continuous(breaks = 0:7) +
+  scale_color_manual(values = c("#000000", "#ff7f00", "#4daf4a", "#984ea3", "#999999",
+                                "#f781bf", "#66c2a5")) +
+  labs(x = "Exact Number of Cards",
+       y = "Proportion",
+       color = "Cluster",
+       title = "Exact number of cards in each cluster") +
+  theme_minimal() +
+  theme(legend.position = "bottom",
+        panel.grid.major = element_blank(),
+        panel.grid.minor = element_blank(),
+        strip.text = element_text(size = 10, face = "bold"),
+        panel.spacing = unit(1, "lines"))
+```
+
+```{r}
+ggplot(cluster_merge |>
+         mutate(cluster = factor(X7cluster)),
+       aes(x = score, color = cluster, linetype = cluster)) +
+  # geom_density(size = 1.2) +
+    stat_density(size = 1.1, geom="line",position="identity") +
+  labs(x = "Score", y = "Density", color = "Cluster", linetype = "Cluster", title="Score distribution by cluster") +
+  scale_color_viridis_d() +
+  theme_minimal()
+```
+
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(card == "Bear"))) +
   geom_tile() +
   theme_minimal() +
   scale_fill_gradient(low="#F0F0F0", high="#006837") +
@@ -2875,7 +3705,7 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(car
 ```
 
 ```{r}
-ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(card == "Bee"))) +
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(card == "Bee"))) +
   geom_tile() +
   theme_minimal() +
   scale_fill_gradient(low="#F0F0F0", high="#006837") +
@@ -2884,7 +3714,7 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(car
 ```
 
 ```{r}
-ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(card == "Meadow"))) +
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(card == "Meadow"))) +
   geom_tile() +
   theme_minimal() +
   scale_fill_gradient(low="#F0F0F0", high="#006837") +
@@ -2893,7 +3723,7 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(car
 ```
 
 ```{r}
-ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(card == "Trout"))) +
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(card == "Trout"))) +
   geom_tile() +
   theme_minimal() +
   scale_fill_gradient(low="#F0F0F0", high="#006837") +
@@ -2902,7 +3732,7 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(car
 ```
 
 ```{r}
-ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(card == "Eagle"))) +
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(card == "Eagle"))) +
   geom_tile() +
   theme_minimal() +
   scale_fill_gradient(low="#F0F0F0", high="#006837") +
@@ -2911,7 +3741,7 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(car
 ```
 
 ```{r}
-ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(card == "Rabbit"))) +
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(card == "Rabbit"))) +
   geom_tile() +
   theme_minimal() +
   scale_fill_gradient(low="#F0F0F0", high="#006837") +
@@ -2920,7 +3750,7 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(car
 ```
 
 ```{r}
-ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(card == "Dragonfly"))) +
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(card == "Dragonfly"))) +
   geom_tile() +
   theme_minimal() +
   scale_fill_gradient(low="#F0F0F0", high="#006837") +
@@ -2929,7 +3759,7 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(car
 ```
 
 ```{r}
-ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(card == "Fox"))) +
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(card == "Fox"))) +
   geom_tile() +
   theme_minimal() +
   scale_fill_gradient(low="#F0F0F0", high="#006837") +
@@ -2938,7 +3768,7 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(car
 ```
 
 ```{r}
-ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(card == "Deer"))) +
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(card == "Deer"))) +
   geom_tile() +
   theme_minimal() +
   scale_fill_gradient(low="#F0F0F0", high="#006837") +
@@ -2947,7 +3777,7 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(car
 ```
 
 ```{r}
-ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(card == "Stream"))) +
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(card == "Stream"))) +
   geom_tile() +
   theme_minimal() +
   scale_fill_gradient(low="#F0F0F0", high="#006837") +
@@ -2956,7 +3786,7 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(car
 ```
 
 ```{r}
-ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(card == "Wolf"))) +
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(card == "Wolf"))) +
   geom_tile() +
   theme_minimal() +
   scale_fill_gradient(low="#F0F0F0", high="#006837") +
@@ -3145,6 +3975,36 @@ neighbors_sum2 = neighbors_cluster_long |>
   mutate(proportion = n / sum(n))
 ```
 
+```{r}
+neighbors_sum2_renamed <- neighbors_sum2 %>%
+    mutate(
+      `7cluster` = factor(`7cluster`, levels = c(
+      "Cluster_1", "Cluster_2", "Cluster_3", 
+      "Cluster_4", "Cluster_5", "Cluster_6", "Cluster_7"
+    ))) %>%
+    mutate(`7cluster` = fct_recode(`7cluster`,
+      "Bear" = "Cluster_1",
+      "Fox" = "Cluster_2",
+      "Meadow Bee" = "Cluster_3",
+      "Eagle Rabbit" = "Cluster_4",
+      "Wolf" = "Cluster_5",
+      "Stream Trout Dragonfly" = "Cluster_6",
+      "Stream Dragonfly" = "Cluster_7"
+    )) %>%
+  mutate(
+      neighbor_card = factor(neighbor_card, levels = c(
+      "Meadow", "Stream", "Bear", 
+      "Deer", "Fox", "Wolf", "Trout", "Bee", 
+      "Dragonfly", "Eagle", "Rabbit" 
+    ))) %>%
+  mutate(
+      card = factor(card, levels = c(
+      "Meadow", "Stream", "Bear", 
+      "Deer", "Fox", "Wolf", "Trout", "Bee", 
+      "Dragonfly", "Eagle", "Rabbit" 
+    )))
+```
+
 
 ```{r}
 ggplot(neighbors_sum2,
@@ -3156,6 +4016,20 @@ ggplot(neighbors_sum2,
   facet_wrap(vars(card)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
 ```
+
+```{r}
+ggplot(neighbors_sum2_renamed,
+       aes(x = `7cluster`,
+           fill = neighbor_card,
+           y = proportion)) +
+  geom_bar(position = "fill", stat = "identity") +
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
+  facet_wrap(vars(card)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
+  labs(title = "Propotion of neighbor cards by cluster for each card type")
+```
+
 
 ```{r}
 ggplot(neighbors_sum2,
@@ -3340,12 +4214,19 @@ low_score = database_new %>% anti_join(cluster_merge, by = "ID")
 
 ```{r}
 ggplot(cluster_merge, aes(x = score, color = factor(X7cluster))) +
-  geom_density(size = 1.2) +
-  geom_density(aes(x=score, color = "All grids"), size = 1.2, data=database_new) +
+  geom_density(size = 1.2, key_glyph = "path") +
+  geom_density(aes(x=score, color = "Unclustered"), size = 1.2, data=low_score, key_glyph = "path") +
+  geom_density(aes(x=score, color = "All grids"), size = 1.2, data=database_new, key_glyph = "path") +
   labs(x = "Score", y = "Density", color = "Cluster", title="Score distribution by cluster") +
   theme_minimal()
 ```
 
+```{r}
+ggplot(database_new, aes(x = score, color = pool)) +
+  geom_density(size = 1.2, key_glyph = "path") +
+  labs(x = "Score", y = "Density", color = "Pool Sampled", title="Score distribution by pool") +
+  theme_minimal()
+```
 
 
 ```{r}
@@ -3427,3 +4308,314 @@ baseline_data <- data.frame(baseline_scores)
 ggplot(aes(x = baseline_scores), data = baseline_data) +
   geom_histogram(binwidth = 5, fill = "steelblue")
 ```
+
+```{r}
+set.seed(4)
+
+slide_grid <- matrix(c("Stream", "Dragonfly", "Wolf", "Meadow", "Meadow", "Stream", "Trout", "Bear", "Bee", "Meadow",
+                      "Stream", "Stream", "Deer", "Eagle", "Wolf", "Stream", "Dragonfly", "Fox", "Deer",
+                      "Rabbit"),4,5,byrow=TRUE)
+
+run1 <- rw_mcmc(slide_grid, 1000, "annealing dynamic", 0.9, 200, record_board = TRUE)
+
+completed_slide <-  matrix(run1[1:20], 4,5,byrow=TRUE)
+
+slide_grid
+solo_score(score_grid(slide_grid))
+
+completed_slide
+solo_score(score_grid(completed_slide))
+
+slide_grid_op <- matrix(c("Stream", "Dragonfly", "Wolf", "Meadow", "Meadow", "Stream", "Trout", "Bear", "Bee", "Meadow",
+                      "Stream", "Stream", "Eagle", "Rabbit", "Deer", "Stream", "Dragonfly", "Fox", "Deer",
+                      "Wolf"),4,5,byrow=TRUE)
+slide_grid_op
+solo_score(score_grid(slide_grid_op))
+```
+
+
+```{r}
+first_row <- score_grid(matrix(c(t(slide_grid)),nrow=4,ncol=5,byrow=T), individual=TRUE)
+
+slide_score <- data.frame(
+  bear_score = c(first_row[1]),
+  bee_score = c(first_row[2]),
+  meadow_score = c(first_row[3]),
+  trout_score = c(first_row[4]),
+  eagle_score = c(first_row[5]),
+  rabbit_score = c(first_row[6]),
+  dragonfly_score = c(first_row[7]),
+  fox_score = c(first_row[8]),
+  deer_score = c(first_row[9]),
+  stream_score = c(first_row[10]),
+  wolves_score = c(first_row[11]),
+  dv_score = c(first_row[12])
+)
+slide_score
+```
+
+
+```{r}
+# stream dragonfly trout
+(choose(20, 7)*choose(8, 3)*choose(10, 3)*choose(92, 7))/choose(130, 20)
+(choose(20, 5)*choose(8, 2)*choose(10, 2)*choose(92, 11))/choose(130, 20)
+```
+
+```{r}
+# stream dragonfly
+(choose(20, 9)*choose(8, 4)*choose(102, 7))/choose(130, 20)
+(choose(20, 7)*choose(8, 3)*choose(102, 10))/choose(130, 20)
+```
+
+```{r}
+# fox deer/wolf deer
+(choose(12, 4)*choose(12, 3)*choose(106, 13))/choose(130, 20)
+(choose(12, 3)*choose(12, 2)*choose(106, 15))/choose(130, 20)
+```
+```{r}
+# bee meadow
+(choose(20, 9)*choose(8, 4)*choose(102, 7))/choose(130, 20)
+(choose(20, 5)*choose(8, 2)*choose(102, 13))/choose(130, 20)
+```
+
+```{r}
+# bear bee trout
+(choose(12, 4)*choose(8, 3)*choose(10, 4)*choose(100, 9))/choose(130, 20)
+(choose(12, 3)*choose(8, 1)*choose(10, 2)*choose(100, 14))/choose(130, 20)
+```
+```{r}
+# eagle rabbit 
+(choose(8, 3)*choose(8, 3)*choose(10, 3)*choose(104, 11))/choose(130, 20)
+(choose(8, 2)*choose(8, 2)*choose(10, 1)*choose(104, 15))/choose(130, 20)
+```
+
+```{r}
+xvy <- cluster_merge %>% filter(X7cluster == "Cluster_4")
+```
+
+```{r}
+fps2 <- read.csv(here::here("final-parameters-seed2.csv"))
+```
+
+```{r}
+tuned_params <- read.csv(here::here("tuned-parameters.csv"))
+```
+
+### AI function
+
+```{r}
+multivariate_hypergeometric <- function(desired_counts, deck_counts, total_draw, total_deck = NULL) {
+  # Input validation
+  if (length(desired_counts) != length(deck_counts)) {
+    stop("Length of desired_counts must match deck_counts")
+  }
+  if (any(desired_counts < 0) || any(deck_counts < 0)) {
+    stop("Counts cannot be negative")
+  }
+  if (total_draw <= 0) {
+    stop("Total draw must be positive")
+  }
+  
+  # Calculate total deck size and other cards
+  if (is.null(total_deck)) {
+    total_deck <- sum(deck_counts)
+    warning("Assuming total deck size is sum of provided deck_counts (", total_deck, 
+            "). Specify total_deck if different.")
+  }
+  
+  other_cards <- total_deck - sum(deck_counts)
+  if (other_cards < 0) {
+    stop("Sum of deck_counts exceeds total_deck")
+  }
+  
+  # Check if draw is possible
+  if (total_draw > total_deck) {
+    stop("Cannot draw more cards than exist in deck")
+  }
+  if (sum(desired_counts) > total_draw) {
+    return(0)  # Impossible to get all desired counts
+  }
+  
+  # Initialize probability
+  total_prob <- 0
+  
+  # Recursive helper function
+  generate_combinations <- function(current, remaining_draw, remaining_types, prob_so_far) {
+    if (length(current) == length(desired_counts)) {
+      # Base case: all types assigned
+      remaining_cards <- remaining_draw
+      if (remaining_cards >= 0) {
+        # Calculate final probability for this combination
+        final_prob <- prob_so_far * 
+          choose(other_cards, remaining_cards) / 
+          choose(total_deck, total_draw)
+        return(final_prob)
+      } else {
+        return(0)
+      }
+    }
+    
+    # Recursive case: assign counts for current type
+    type_index <- length(current) + 1
+    min_count <- desired_counts[type_index]
+    max_count <- min(deck_counts[type_index], remaining_draw)
+    
+    prob_sum <- 0
+    for (count in min_count:max_count) {
+      new_current <- c(current, count)
+      new_remaining <- remaining_draw - count
+      new_prob <- prob_so_far * choose(deck_counts[type_index], count)
+      prob_sum <- prob_sum + 
+        generate_combinations(new_current, new_remaining, remaining_types, new_prob)
+    }
+    return(prob_sum)
+  }
+  
+  # Start recursive calculation
+  total_prob <- generate_combinations(
+    current = numeric(0),
+    remaining_draw = total_draw,
+    remaining_types = length(desired_counts),
+    prob_so_far = 1
+  )
+  
+  return(total_prob)
+}
+```
+
+
+```{r}
+prob <- multivariate_hypergeometric(
+  desired_counts = c(2, 5),    # Minimums for bees and meadows
+  deck_counts = c(8, 20),      # Counts in deck for bees and meadows
+  total_draw = 20,             # Drawing 20 cards
+  total_deck = 130             # Total cards in deck
+)
+prob
+```
+
+```{r}
+# bear bee trout minimum
+prob <- multivariate_hypergeometric(
+  desired_counts = c(3, 2, 2),
+  deck_counts = c(12, 8, 10),
+  total_draw = 20,
+  total_deck = 130
+)
+prob
+
+# bear bee trout maximum
+prob <- multivariate_hypergeometric(
+  desired_counts = c(4, 3, 3),
+  deck_counts = c(12, 8, 10),
+  total_draw = 20,
+  total_deck = 130
+)
+prob
+```
+
+```{r}
+# fox min
+prob <- multivariate_hypergeometric(
+  desired_counts = c(3),
+  deck_counts = c(12),
+  total_draw = 20,
+  total_deck = 130
+)
+prob
+
+# fox max
+prob <- multivariate_hypergeometric(
+  desired_counts = c(4),
+  deck_counts = c(12),
+  total_draw = 20,
+  total_deck = 130
+)
+prob
+```
+
+```{r}
+# bee meadow min
+prob <- multivariate_hypergeometric(
+  desired_counts = c(2, 5),    # Minimums for bees and meadows
+  deck_counts = c(8, 20),      # Counts in deck for bees and meadows
+  total_draw = 20,             # Drawing 20 cards
+  total_deck = 130             # Total cards in deck
+)
+prob
+
+# bee meadow max
+prob <- multivariate_hypergeometric(
+  desired_counts = c(4, 9),    # Minimums for bees and meadows
+  deck_counts = c(8, 20),      # Counts in deck for bees and meadows
+  total_draw = 20,             # Drawing 20 cards
+  total_deck = 130             # Total cards in deck
+)
+prob
+```
+
+```{r}
+# eagle rabbit trout min
+prob <- multivariate_hypergeometric(
+  desired_counts = c(2, 2, 1),    
+  deck_counts = c(8, 8, 10),      
+  total_draw = 20,             
+  total_deck = 130             
+)
+prob
+
+# eagle rabbit trout max
+prob <- multivariate_hypergeometric(
+  desired_counts = c(3, 3, 3),    
+  deck_counts = c(8, 8, 10),      
+  total_draw = 20,             
+  total_deck = 130             
+)
+prob
+```
+
+```{r}
+# stream dragonfly trout min
+prob <- multivariate_hypergeometric(
+  desired_counts = c(4, 2, 2),    
+  deck_counts = c(20, 8, 10),      
+  total_draw = 20,             
+  total_deck = 130             
+)
+prob
+
+# stream dragonfly trout max
+prob <- multivariate_hypergeometric(
+  desired_counts = c(7, 3, 3),    
+  deck_counts = c(20, 8, 10),      
+  total_draw = 20,             
+  total_deck = 130             
+)
+prob
+```
+
+```{r}
+# stream dragonfly min
+prob <- multivariate_hypergeometric(
+  desired_counts = c(5, 3),    
+  deck_counts = c(20, 8),      
+  total_draw = 20,             
+  total_deck = 130             
+)
+prob
+
+# stream dragonfly max
+prob <- multivariate_hypergeometric(
+  desired_counts = c(9, 4),    
+  deck_counts = c(20, 8),      
+  total_draw = 20,             
+  total_deck = 130             
+)
+prob
+```
+
+```{r}
+1-phyper(3, 12, 118, 20)
+```
+
+
