@@ -1924,9 +1924,11 @@ km_fitted2 %>% extract_cluster_assignment()
 database_new %>%
   summarize(mean_score=mean(score),
             sd_score=sd(score),
+            min = min(score),
             p25th=quantile(score,probs=0.25),
             median=quantile(score,probs=0.5),
             p75th=quantile(score,probs=0.75),
+            max=max(score),
             count=n())
 ```
 
@@ -2607,52 +2609,51 @@ make_heatmap <- function(df, title){
 ```
 
 ```{r}
-bind_7clusters <- function(cluster_num){
+bind_6clusters <- function(cluster_num){
   rbind(count_prop("Bear", 
            df <- cluster_data %>%
-              filter(X7cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Bear"),
+              filter(X6cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Bear"),
         count_prop("Bee", 
            df <- cluster_data %>%
-              filter(X7cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Bee"),
+              filter(X6cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Bee"),
         count_prop("Meadow", 
            df <- cluster_data %>%
-              filter(X7cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Meadow"),
+              filter(X6cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Meadow"),
         count_prop("Trout", 
            df <- cluster_data %>%
-              filter(X7cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Trout"),
+              filter(X6cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Trout"),
         count_prop("Eagle", 
            df <- cluster_data %>%
-              filter(X7cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Eagle"),
+              filter(X6cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Eagle"),
         count_prop("Rabbit", 
            df <- cluster_data %>%
-              filter(X7cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Rabbit"),
+              filter(X6cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Rabbit"),
         count_prop("Dragonfly", 
            df <- cluster_data %>%
-              filter(X7cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Dragonfly"),
+              filter(X6cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Dragonfly"),
         count_prop("Fox", 
            df <- cluster_data %>%
-              filter(X7cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Fox"),
+              filter(X6cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Fox"),
         count_prop("Deer", 
            df <- cluster_data %>%
-              filter(X7cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Deer"),
+              filter(X6cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Deer"),
         count_prop("Stream", 
            df <- cluster_data %>%
-              filter(X7cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Stream"),
+              filter(X6cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Stream"),
         count_prop("Wolf", 
            df <- cluster_data %>%
-              filter(X7cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Wolf")
+              filter(X6cluster == cluster_num)) %>% mutate(cluster = cluster_num, card = "Wolf")
   )
 }
 ```
 
 ```{r}
-cluster_position <- rbind(bind_7clusters("Cluster_1"),
-                          bind_7clusters("Cluster_2"),
-                          bind_7clusters("Cluster_3"),
-                          bind_7clusters("Cluster_4"),
-                          bind_7clusters("Cluster_5"),
-                          bind_7clusters("Cluster_6"),
-                          bind_7clusters("Cluster_7")
+cluster_position <- rbind(bind_6clusters("Cluster_1"),
+                          bind_6clusters("Cluster_2"),
+                          bind_6clusters("Cluster_3"),
+                          bind_6clusters("Cluster_4"),
+                          bind_6clusters("Cluster_5"),
+                          bind_6clusters("Cluster_6")
                     )
 ```
 
@@ -2666,17 +2667,17 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position %>% filter(car
 ```
 
 ```{r}
-overall_position <- rbind(count_prop("Bear", database_new) %>% mutate(card = "Bear"),
-                          count_prop("Bee", database_new) %>% mutate(card = "Bee"),
-                          count_prop("Meadow", database_new) %>% mutate(card = "Meadow"),
-                          count_prop("Trout", database_new) %>% mutate(card = "Trout"),
-                          count_prop("Eagle", database_new) %>% mutate(card = "Eagle"),
-                          count_prop("Rabbit", database_new) %>% mutate(card = "Rabbit"),
-                          count_prop("Dragonfly", database_new) %>% mutate(card = "Dragonfly"),
-                          count_prop("Fox", database_new) %>% mutate(card = "Fox"),
-                          count_prop("Deer", database_new) %>% mutate(card = "Deer"),
-                          count_prop("Stream", database_new) %>% mutate(card = "Stream"),
-                          count_prop("Wolf", database_new) %>% mutate(card = "Wolf")
+overall_position <- rbind(count_prop("Bear", database_lowest_removed) %>% mutate(card = "Bear"),
+                          count_prop("Bee", database_lowest_removed) %>% mutate(card = "Bee"),
+                          count_prop("Meadow", database_lowest_removed) %>% mutate(card = "Meadow"),
+                          count_prop("Trout", database_lowest_removed) %>% mutate(card = "Trout"),
+                          count_prop("Eagle", database_lowest_removed) %>% mutate(card = "Eagle"),
+                          count_prop("Rabbit", database_lowest_removed) %>% mutate(card = "Rabbit"),
+                          count_prop("Dragonfly", database_lowest_removed) %>% mutate(card = "Dragonfly"),
+                          count_prop("Fox", database_lowest_removed) %>% mutate(card = "Fox"),
+                          count_prop("Deer", database_lowest_removed) %>% mutate(card = "Deer"),
+                          count_prop("Stream", database_lowest_removed) %>% mutate(card = "Stream"),
+                          count_prop("Wolf", database_lowest_removed) %>% mutate(card = "Wolf")
                           )
 ```
 
@@ -3146,6 +3147,17 @@ Distributions of the exact number of each card type out of all grids in the clus
 ## Additional Displays
 
 ```{r}
+overall_position <- overall_position %>%
+    mutate(
+      card = factor(card, levels = c(
+      "Meadow", "Stream", "Bear", 
+      "Deer", "Fox", "Wolf", "Trout", "Bee", 
+      "Dragonfly", "Eagle", "Rabbit"
+    )))
+```
+
+
+```{r}
 ggplot(aes(x=col, y=row, fill=proportion), data=(overall_position)) +
   geom_tile() +
   theme_minimal() +
@@ -3155,29 +3167,28 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(overall_position)) +
 ```
 
 ```{r}
-all_cluster_prop7_s5 <- rbind(cluster_prop(75, "Cluster_1", cluster_data) %>% mutate(cluster = "Cluster_1"),
-                          cluster_prop(75, "Cluster_2", cluster_data) %>% mutate(cluster = "Cluster_2"),
-                          cluster_prop(75, "Cluster_3", cluster_data) %>% mutate(cluster = "Cluster_3"),
-                          cluster_prop(75, "Cluster_4", cluster_data) %>% mutate(cluster = "Cluster_4"),
-                          cluster_prop(75, "Cluster_5", cluster_data) %>% mutate(cluster = "Cluster_5"),
-                          cluster_prop(75, "Cluster_6", cluster_data) %>% mutate(cluster = "Cluster_6"),
-                          cluster_prop(75, "Cluster_7", cluster_data) %>% mutate(cluster = "Cluster_7")
-                          )
+# all_cluster_prop7_s5 <- rbind(cluster_prop(75, "Cluster_1", cluster_data) %>% mutate(cluster = "Cluster_1"),
+#                           cluster_prop(75, "Cluster_2", cluster_data) %>% mutate(cluster = "Cluster_2"),
+#                           cluster_prop(75, "Cluster_3", cluster_data) %>% mutate(cluster = "Cluster_3"),
+#                           cluster_prop(75, "Cluster_4", cluster_data) %>% mutate(cluster = "Cluster_4"),
+#                           cluster_prop(75, "Cluster_5", cluster_data) %>% mutate(cluster = "Cluster_5"),
+#                           cluster_prop(75, "Cluster_6", cluster_data) %>% mutate(cluster = "Cluster_6"),
+#                           cluster_prop(75, "Cluster_7", cluster_data) %>% mutate(cluster = "Cluster_7")
+#                           )
 ```
 
 ```{r}
-# all_exact <- rbind(exact_card_count(7, "Cluster_1", cluster_data) %>% mutate(cluster = "Cluster_1"),
-#                    exact_card_count(7, "Cluster_2", cluster_data) %>% mutate(cluster = "Cluster_2"),
-#                    exact_card_count(7, "Cluster_3", cluster_data) %>% mutate(cluster = "Cluster_3"),
-#                    exact_card_count(7, "Cluster_4", cluster_data) %>% mutate(cluster = "Cluster_4"),
-#                    exact_card_count(7, "Cluster_5", cluster_data) %>% mutate(cluster = "Cluster_5"),
-#                    exact_card_count(7, "Cluster_6", cluster_data) %>% mutate(cluster = "Cluster_6"),
-#                    exact_card_count(7, "Cluster_7", cluster_data) %>% mutate(cluster = "Cluster_7")
-#                    )
+# all_exact <- rbind(exact_card_count(6, "Cluster_1", cluster_data) %>% mutate(cluster = "Cluster_1"),
+#                    exact_card_count(6, "Cluster_2", cluster_data) %>% mutate(cluster = "Cluster_2"),
+#                    exact_card_count(6, "Cluster_3", cluster_data) %>% mutate(cluster = "Cluster_3"),
+#                    exact_card_count(6, "Cluster_4", cluster_data) %>% mutate(cluster = "Cluster_4"),
+#                    exact_card_count(6, "Cluster_5", cluster_data) %>% mutate(cluster = "Cluster_5"),
+#                    exact_card_count(6, "Cluster_6", cluster_data) %>% mutate(cluster = "Cluster_6")
+# )
 ```
 
 ```{r}
-# write.csv(all_exact, here::here("all_exact.csv"), row.names = FALSE)
+# write.csv(all_exact, here::here("all_exact-CORRECTED.csv"), row.names = FALSE)
 ```
 
 ```{r}
@@ -3188,17 +3199,16 @@ all_cluster_prop7_s5 <- rbind(cluster_prop(75, "Cluster_1", cluster_data) %>% mu
 cluster_position_renamed <- cluster_position %>%
   mutate(
       cluster = factor(cluster, levels = c(
-      "Cluster_1", "Cluster_2", "Cluster_3", 
-      "Cluster_4", "Cluster_5", "Cluster_6", "Cluster_7"
+      "Cluster_1", "Cluster_2", "Cluster_3",
+      "Cluster_4", "Cluster_5", "Cluster_6"
     ))) %>%
     mutate(cluster = fct_recode(cluster,
-      "Bear" = "Cluster_1",
-      "Fox" = "Cluster_2",
+      "Bear Trout Bee" = "Cluster_1",
+      "Stream Dragonfly" = "Cluster_2",
       "Meadow Bee" = "Cluster_3",
       "Eagle Rabbit" = "Cluster_4",
-      "Wolf" = "Cluster_5",
-      "Stream Trout Dragonfly" = "Cluster_6",
-      "Stream Dragonfly" = "Cluster_7"
+      "Deer Fox" = "Cluster_5",
+      "Elevated Trout" = "Cluster_6"
     ))
 ```
 
@@ -3212,21 +3222,20 @@ all_cluster_prop_renamed <- all_cluster_prop %>%
     mutate(
       cluster = factor(cluster, levels = c(
       "Cluster_1", "Cluster_2", "Cluster_3", 
-      "Cluster_4", "Cluster_5", "Cluster_6", "Cluster_7"
+      "Cluster_4", "Cluster_5", "Cluster_6"
     ))) %>%
     mutate(cluster = fct_recode(cluster,
-      "Bear" = "Cluster_1",
-      "Fox" = "Cluster_2",
+      "Bear Trout Bee" = "Cluster_1",
+      "Stream Dragonfly" = "Cluster_2",
       "Meadow Bee" = "Cluster_3",
       "Eagle Rabbit" = "Cluster_4",
-      "Wolf" = "Cluster_5",
-      "Stream Trout Dragonfly" = "Cluster_6",
-      "Stream Dragonfly" = "Cluster_7"
+      "Deer Fox" = "Cluster_5",
+      "Elevated Trout" = "Cluster_6"
     ))
 ```
 
 ```{r}
-all_exact <- read.csv(here::here("all_exact.csv")) 
+all_exact <- read.csv(here::here("all_exact-CORRECTED.csv")) 
 ```
 
 ```{r}
@@ -3234,40 +3243,38 @@ all_exact_renamed <- all_exact %>%
     mutate(
       cluster = factor(cluster, levels = c(
       "Cluster_1", "Cluster_2", "Cluster_3", 
-      "Cluster_4", "Cluster_5", "Cluster_6", "Cluster_7"
+      "Cluster_4", "Cluster_5", "Cluster_6"
     ))) %>%
     mutate(cluster = fct_recode(cluster,
-      "Bear" = "Cluster_1",
-      "Fox" = "Cluster_2",
+      "Bear Trout Bee" = "Cluster_1",
+      "Stream Dragonfly" = "Cluster_2",
       "Meadow Bee" = "Cluster_3",
       "Eagle Rabbit" = "Cluster_4",
-      "Wolf" = "Cluster_5",
-      "Stream Trout Dragonfly" = "Cluster_6",
-      "Stream Dragonfly" = "Cluster_7"
+      "Deer Fox" = "Cluster_5",
+      "Elevated Trout" = "Cluster_6"
     ))
 ```
 
 ```{r}
 cluster_data_renamed <- cluster_data %>%
     mutate(
-      X7cluster = factor(X7cluster, levels = c(
+      X6cluster = factor(X6cluster, levels = c(
       "Cluster_1", "Cluster_2", "Cluster_3", 
-      "Cluster_4", "Cluster_5", "Cluster_6", "Cluster_7"
+      "Cluster_4", "Cluster_5", "Cluster_6"
     ))) %>%
-    mutate(X7cluster = fct_recode(X7cluster,
-      "Bear" = "Cluster_1",
-      "Fox" = "Cluster_2",
+    mutate(X6cluster = fct_recode(X6cluster,
+      "Bear Trout Bee" = "Cluster_1",
+      "Stream Dragonfly" = "Cluster_2",
       "Meadow Bee" = "Cluster_3",
       "Eagle Rabbit" = "Cluster_4",
-      "Wolf" = "Cluster_5",
-      "Stream Trout Dragonfly" = "Cluster_6",
-      "Stream Dragonfly" = "Cluster_7"
+      "Deer Fox" = "Cluster_5",
+      "Elevated Trout" = "Cluster_6"
     ))
 ```
 
 ```{r}
-results_table <- cluster_data %>%
-  group_by(X7cluster) %>%
+results_table <- cluster_data_renamed %>%
+  group_by(X6cluster) %>%
   summarize(mean_score=mean(score),
             sd_score=sd(score),
             p25th=quantile(score,probs=0.25),
@@ -3280,7 +3287,7 @@ results_table
 ```
 
 ```{r}
-# write.csv(results_table, here::here("results_table.csv"), row.names = FALSE)
+# write.csv(results_table, here::here("results_table-CORRECTED.csv"), row.names = FALSE)
 ```
 
 #### 7 cluster
@@ -3377,11 +3384,11 @@ all_cluster_prop6 <- read.csv(here::here("cluster_prop6-CORRECTED.csv")) %>%
 ggplot(aes(x = reorder(name, -true_prop), 
            y = proportion, 
            fill = reorder(name, -true_prop)), 
-       data=all_cluster_prop6) + 
+       data=all_cluster_prop) + 
   geom_bar(stat = "identity") +
   geom_point(aes(x = reorder(name, -true_prop), y= true_prop),
              color = "red",
-             data=all_cluster_prop6,
+             data=all_cluster_prop,
              show.legend = FALSE) +
   scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
                     "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
@@ -3560,6 +3567,8 @@ ggplot(aes(x = reorder(name, -true_prop),
   facet_wrap(vars(cluster))
 ```
 
+### Results
+
 ```{r}
 ggplot(aes(x = reorder(name, -true_prop), 
            y = proportion, 
@@ -3585,7 +3594,7 @@ ggplot(aes(x = reorder(name, -true_prop),
 
 
 ```{r}
-ggplot(all_cluster_prop, aes(x = proportion, y = cluster, color = reorder(name, -true_prop))) +
+ggplot(all_cluster_prop_renamed, aes(x = proportion, y = cluster, color = reorder(name, -true_prop))) +
   geom_point(
     size = 3,
     alpha = 0.8,
@@ -3608,13 +3617,25 @@ ggplot(all_cluster_prop, aes(x = proportion, y = cluster, color = reorder(name, 
 ```
 
 ```{r}
-ggplot(all_cluster_prop_renamed, aes(x = proportion, y = reorder(name, true_prop), color = cluster)) +
+all_cluster_prop_renamed <- all_cluster_prop_renamed %>%
+    mutate(
+      name = factor(name, levels = c(
+      "meadow", "stream", "bear", 
+      "deer", "fox", "wolf", "trout", "bee", 
+      "dragonfly", "eagle", "rabbit"
+    )))
+```
+
+
+```{r}
+ggplot(all_cluster_prop_renamed, aes(x = proportion, y = name, color = cluster)) +
   geom_point(
     size = 3,
     position = position_jitter(height = 0.2, seed = 99)
   ) +
-  scale_color_manual(values = c("#000000", "#ff7f00", "#4daf4a", "#984ea3", "#999999",
-                                "#f781bf", "#66c2a5")) +
+  scale_y_discrete(limits = rev) +
+  scale_color_manual(values = c("#000000", "#377eb8", "#4daf4a", "#984ea3", "#a65628",
+                                "#f781bf")) +
   labs(
     x = "Proportion", 
     y = "Card Type",
@@ -3669,8 +3690,8 @@ ggplot(all_exact_renamed, aes(x = num_exact, y = proportion, color = cluster)) +
   geom_line(size = 0.5) +
   facet_wrap(~ card) +
   scale_x_continuous(breaks = 0:7) +
-  scale_color_manual(values = c("#000000", "#ff7f00", "#4daf4a", "#984ea3", "#999999",
-                                "#f781bf", "#66c2a5")) +
+  scale_color_manual(values = c("#000000", "#377eb8", "#4daf4a", "#984ea3", "#a65628",
+                                "#f781bf")) +
   labs(x = "Exact Number of Cards",
        y = "Proportion",
        color = "Cluster",
@@ -3684,14 +3705,226 @@ ggplot(all_exact_renamed, aes(x = num_exact, y = proportion, color = cluster)) +
 ```
 
 ```{r}
-ggplot(cluster_merge |>
-         mutate(cluster = factor(X7cluster)),
+db_individual_removed <- read.csv(here::here("db_individual_lowest_removed-CORRECTED.csv"))
+```
+
+```{r}
+cluster_merge <- merge(x = cluster_data, y = db_individual_removed, by = "ID")
+```
+
+```{r}
+cluster_merge_renamed <- cluster_merge %>%
+  mutate(
+      cluster = factor(X6cluster, levels = c(
+      "Cluster_1", "Cluster_2", "Cluster_3",
+      "Cluster_4", "Cluster_5", "Cluster_6"
+    ))) %>%
+    mutate(X6cluster = fct_recode(X6cluster,
+      "Bear Trout Bee" = "Cluster_1",
+      "Stream Dragonfly" = "Cluster_2",
+      "Meadow Bee" = "Cluster_3",
+      "Eagle Rabbit" = "Cluster_4",
+      "Deer Fox" = "Cluster_5",
+      "Elevated Trout" = "Cluster_6"
+    ))
+```
+
+
+```{r}
+ggplot(cluster_merge_renamed |>
+         mutate(cluster = factor(X6cluster)),
        aes(x = score, color = cluster, linetype = cluster)) +
   # geom_density(size = 1.2) +
     stat_density(size = 1.1, geom="line",position="identity") +
   labs(x = "Score", y = "Density", color = "Cluster", linetype = "Cluster", title="Score distribution by cluster") +
-  scale_color_viridis_d() +
+  scale_color_manual(values = c("#000000", "#377eb8", "#4daf4a", "#984ea3", "#a65628",
+                                "#f781bf")) +
   theme_minimal()
+```
+
+```{r}
+results_table
+```
+
+```{r}
+cluster_merge_renamed %>%
+  filter(X6cluster == "Meadow Bee") %>%
+  group_by(dv_score) %>%
+  summarize(count = n()) %>%
+  arrange(desc(dv_score))
+```
+
+```{r}
+cluster_merge_renamed %>%
+  filter(X6cluster == "Stream Dragonfly") %>%
+  group_by(dv_score) %>%
+  summarize(count = n()) %>%
+  arrange(desc(dv_score))
+```
+
+```{r}
+cluster_merge_renamed %>%
+  filter(X6cluster == "Bear Trout Bee") %>%
+  group_by(dv_score) %>%
+  summarize(count = n()) %>%
+  arrange(desc(dv_score))
+```
+
+```{r}
+cluster_merge_renamed %>%
+  filter(X6cluster == "Eagle Rabbit") %>%
+  group_by(dv_score) %>%
+  summarize(count = n()) %>%
+  arrange(desc(dv_score))
+```
+
+```{r}
+cluster_merge_renamed %>%
+  filter(X6cluster == "Deer Fox") %>%
+  group_by(dv_score) %>%
+  summarize(count = n()) %>%
+  arrange(desc(dv_score))
+```
+
+```{r}
+cluster_merge_renamed %>%
+  filter(X6cluster == "Elevated Trout") %>%
+  group_by(dv_score) %>%
+  summarize(count = n()) %>%
+  arrange(desc(dv_score))
+```
+
+
+### Heat Maps
+
+```{r}
+cluster_position_renamed <- cluster_position_renamed %>%
+  mutate(
+      card = factor(card, levels = c(
+      "Meadow", "Stream", "Bear", 
+      "Deer", "Fox", "Wolf", "Trout", "Bee", 
+      "Dragonfly", "Eagle", "Rabbit"
+    )))
+```
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(overall_position)) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  facet_wrap(vars(card)) +
+  labs(title="Positions across all 50,000")
+```
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% 
+                                                   filter(cluster == "Bear Trout Bee"))) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  facet_wrap(vars(card)) +
+  labs(title="Bear Trout Bee cluster")
+```
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% 
+                                                   filter(cluster == "Bear Trout Bee",
+                                                          card %in% c("Meadow", "Stream", "Dragonfly", "Eagle")))) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  facet_wrap(vars(card)) +
+  labs(title="Bear Trout Bee cluster")
+```
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(cluster == "Stream Dragonfly"))) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  facet_wrap(vars(card)) +
+  labs(title="Stream Dragonfly cluster")
+```
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% 
+                                                   filter(cluster == "Stream Dragonfly",
+                                                          card %in% c("Meadow", "Stream", "Bear", "Bee")))) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  facet_wrap(vars(card)) +
+  labs(title="Stream Dragonfly cluster")
+```
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(cluster == "Meadow Bee"))) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  facet_wrap(vars(card)) +
+  labs(title="Meadow Bee cluster")
+```
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% 
+                                                   filter(cluster == "Meadow Bee",
+                                                          card %in% c("Meadow", "Stream", "Trout", "Bee")))) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  facet_wrap(vars(card)) +
+  labs(title="Meadow Bee cluster")
+```
+
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(cluster == "Eagle Rabbit"))) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  facet_wrap(vars(card)) +
+  labs(title="Eagle Rabbit cluster")
+```
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% 
+                                                   filter(cluster == "Eagle Rabbit",
+                                                          card %in% c("Meadow", "Eagle")))) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  facet_wrap(vars(card)) +
+  labs(title="Eagle Rabbit cluster") +
+  coord_fixed(ratio = 0.8)
+```
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(cluster == "Deer Fox"))) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  facet_wrap(vars(card)) +
+  labs(title="Deer Fox cluster")
+```
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% 
+                                                   filter(cluster == "Deer Fox"))) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  facet_wrap(vars(card)) +
+  labs(title="Deer Fox cluster")
+```
+
+```{r}
+ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(cluster == "Elevated Trout"))) +
+  geom_tile() +
+  theme_minimal() +
+  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  facet_wrap(vars(card)) +
+  labs(title="Elevated Trout cluster")
 ```
 
 
@@ -3797,12 +4030,12 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% fi
 ### Unclustered
 
 ```{r}
-db_pos = read_csv(here::here("database.csv"))
+db_pos = read_csv(here::here("database-CORRECTED-a.csv"))
 ```
 
 ```{r}
 neighbors = db_pos |>
-  filter(score > 60) |>
+  filter(score > 57) |>
   select(!pool) |>
   pivot_longer(!c(ID, score), names_to = "position", values_to = "card") |>
   mutate(row = substr(position, start = 4, stop = 4),
@@ -3880,12 +4113,31 @@ ggplot(neighbors_sum,
 ```
 
 ```{r}
+neighbors_sum <- neighbors_sum %>%
+mutate(
+      card = factor(card, levels = c(
+      "Meadow", "Stream", "Bear", 
+      "Deer", "Fox", "Wolf", "Trout", "Bee", 
+      "Dragonfly", "Eagle", "Rabbit"
+    ))) %>%
+  mutate(
+      neighbor_card = factor(neighbor_card, levels = c(
+      "Meadow", "Stream", "Bear", 
+      "Deer", "Fox", "Wolf", "Trout", "Bee", 
+      "Dragonfly", "Eagle", "Rabbit"
+    )))
+```
+
+
+```{r}
 ggplot(neighbors_sum,
        aes(x = card,
            fill = neighbor_card,
            y = proportion)) +
   geom_bar(position = "fill", stat = "identity") +
-  scale_fill_viridis_d()
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62"))+
+  theme_minimal()
 ```
 
 ```{r}
@@ -3901,7 +4153,7 @@ ggplot(neighbors_sum,
 ### Clustered
 
 ```{r}
-db_cluster = read_csv(here::here("normalized_clusters.csv"))
+db_cluster = read_csv(here::here("normalized_clusters-CORRECTED.csv"))
 ```
 
 ```{r}
@@ -3970,7 +4222,7 @@ neighbors_cluster_long |> head(10)
 ```{r}
 neighbors_sum2 = neighbors_cluster_long |>
   filter(!is.na(neighbor_card)) |>
-  group_by(card, `7cluster`) |>
+  group_by(card, `6cluster`) |>
   count(neighbor_card) |>
   mutate(proportion = n / sum(n))
 ```
@@ -3978,18 +4230,17 @@ neighbors_sum2 = neighbors_cluster_long |>
 ```{r}
 neighbors_sum2_renamed <- neighbors_sum2 %>%
     mutate(
-      `7cluster` = factor(`7cluster`, levels = c(
+      `6cluster` = factor(`6cluster`, levels = c(
       "Cluster_1", "Cluster_2", "Cluster_3", 
-      "Cluster_4", "Cluster_5", "Cluster_6", "Cluster_7"
+      "Cluster_4", "Cluster_5", "Cluster_6"
     ))) %>%
-    mutate(`7cluster` = fct_recode(`7cluster`,
-      "Bear" = "Cluster_1",
-      "Fox" = "Cluster_2",
+    mutate(`6cluster` = fct_recode(`6cluster`,
+      "Bear Trout Bee" = "Cluster_1",
+      "Stream Dragonfly" = "Cluster_2",
       "Meadow Bee" = "Cluster_3",
       "Eagle Rabbit" = "Cluster_4",
-      "Wolf" = "Cluster_5",
-      "Stream Trout Dragonfly" = "Cluster_6",
-      "Stream Dragonfly" = "Cluster_7"
+      "Deer Fox" = "Cluster_5",
+      "Elevated Trout" = "Cluster_6"
     )) %>%
   mutate(
       neighbor_card = factor(neighbor_card, levels = c(
@@ -4008,7 +4259,7 @@ neighbors_sum2_renamed <- neighbors_sum2 %>%
 
 ```{r}
 ggplot(neighbors_sum2,
-       aes(x = `7cluster`,
+       aes(x = `6cluster`,
            fill = neighbor_card,
            y = proportion)) +
   geom_bar(position = "fill", stat = "identity") +
@@ -4019,14 +4270,14 @@ ggplot(neighbors_sum2,
 
 ```{r}
 ggplot(neighbors_sum2_renamed,
-       aes(x = `7cluster`,
+       aes(x = `6cluster`,
            fill = neighbor_card,
            y = proportion)) +
   geom_bar(position = "fill", stat = "identity") +
   scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
                     "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
   facet_wrap(vars(card)) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
+  theme(axis.text.x = element_text(angle = 72, hjust = 1, size = 8)) +
   labs(title = "Propotion of neighbor cards by cluster for each card type")
 ```
 
@@ -4038,7 +4289,7 @@ ggplot(neighbors_sum2,
            fill = proportion)) +
   geom_tile() + 
   scale_fill_distiller(palette = "Greens", direction = 1) +
-  facet_wrap(vars(`7cluster`)) +
+  facet_wrap(vars(`6cluster`)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8))
 ```
 
@@ -4050,7 +4301,7 @@ ggplot(neighbors_sum2 %>% filter(card == "Bear"),
   geom_bar(stat = "identity") +
   scale_fill_viridis_d() +
   theme_minimal() +
-  facet_wrap(vars(`7cluster`)) +
+  facet_wrap(vars(`6cluster`)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
   labs(title="Bear neighbors in each cluster")
 ```
@@ -4186,7 +4437,7 @@ ggplot(neighbors_sum2 %>% filter(card == "Wolf"),
 ```
 
 ```{r}
-db_individual_removed <- read.csv(here::here("db_individual_lowest_removed.csv"))
+db_individual_removed <- read.csv(here::here("db_individual_lowest_removed-CORRECTED.csv"))
 ```
 
 ```{r}
@@ -4225,6 +4476,19 @@ ggplot(cluster_merge, aes(x = score, color = factor(X7cluster))) +
 ggplot(database_new, aes(x = score, color = pool)) +
   geom_density(size = 1.2, key_glyph = "path") +
   labs(x = "Score", y = "Density", color = "Pool Sampled", title="Score distribution by pool") +
+  theme_minimal()
+```
+```{r}
+database_start <- read.csv(here::here("database-CORRECTED-s.csv"))
+```
+
+```{r}
+ggplot(database_start, aes(x = start_score, color = pool)) +
+  geom_density(aes(linetype = factor(pool)), size = 1.2, key_glyph = "path", show.legend = FALSE) +
+  stat_density(data=database_new, aes(x = score, color = pool), size = 1.1,
+               geom="line",position="identity") +
+  scale_linetype_manual(values = c("dashed", "dotted", "dotdash", "longdash", "twodash")) +
+  labs(x = "Score", y = "Density", color = "Pool Sampled", title="Start Score distribution by pool") +
   theme_minimal()
 ```
 
@@ -4515,19 +4779,19 @@ prob
 ```
 
 ```{r}
-# fox min
+# deer fox wolf min
 prob <- multivariate_hypergeometric(
-  desired_counts = c(3),
-  deck_counts = c(12),
+  desired_counts = c(3, 2, 1),
+  deck_counts = c(12, 12, 12),
   total_draw = 20,
   total_deck = 130
 )
 prob
 
-# fox max
+# deer fox wolf max
 prob <- multivariate_hypergeometric(
-  desired_counts = c(4),
-  deck_counts = c(12),
+  desired_counts = c(4, 4, 2),
+  deck_counts = c(12, 12, 12),
   total_draw = 20,
   total_deck = 130
 )
@@ -4546,7 +4810,7 @@ prob
 
 # bee meadow max
 prob <- multivariate_hypergeometric(
-  desired_counts = c(4, 9),    # Minimums for bees and meadows
+  desired_counts = c(3, 8),    # Minimums for bees and meadows
   deck_counts = c(8, 20),      # Counts in deck for bees and meadows
   total_draw = 20,             # Drawing 20 cards
   total_deck = 130             # Total cards in deck
@@ -4566,7 +4830,7 @@ prob
 
 # eagle rabbit trout max
 prob <- multivariate_hypergeometric(
-  desired_counts = c(3, 3, 3),    
+  desired_counts = c(3, 3, 2),    
   deck_counts = c(8, 8, 10),      
   total_draw = 20,             
   total_deck = 130             
@@ -4577,7 +4841,7 @@ prob
 ```{r}
 # stream dragonfly trout min
 prob <- multivariate_hypergeometric(
-  desired_counts = c(4, 2, 2),    
+  desired_counts = c(5, 2, 1),    
   deck_counts = c(20, 8, 10),      
   total_draw = 20,             
   total_deck = 130             
@@ -4586,7 +4850,7 @@ prob
 
 # stream dragonfly trout max
 prob <- multivariate_hypergeometric(
-  desired_counts = c(7, 3, 3),    
+  desired_counts = c(7, 3, 2),    
   deck_counts = c(20, 8, 10),      
   total_draw = 20,             
   total_deck = 130             
@@ -4595,9 +4859,30 @@ prob
 ```
 
 ```{r}
+# trout min
+prob <- multivariate_hypergeometric(
+  desired_counts = c(3),    
+  deck_counts = c(10),      
+  total_draw = 20,             
+  total_deck = 130             
+)
+prob
+
+# trout max
+prob <- multivariate_hypergeometric(
+  desired_counts = c(4),    
+  deck_counts = c(10),      
+  total_draw = 20,             
+  total_deck = 130             
+)
+prob
+```
+
+
+```{r}
 # stream dragonfly min
 prob <- multivariate_hypergeometric(
-  desired_counts = c(5, 3),    
+  desired_counts = c(5, 2),    
   deck_counts = c(20, 8),      
   total_draw = 20,             
   total_deck = 130             
@@ -4606,7 +4891,7 @@ prob
 
 # stream dragonfly max
 prob <- multivariate_hypergeometric(
-  desired_counts = c(9, 4),    
+  desired_counts = c(7, 3),    
   deck_counts = c(20, 8),      
   total_draw = 20,             
   total_deck = 130             
