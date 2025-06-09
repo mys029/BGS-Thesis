@@ -1070,170 +1070,170 @@ multi_mcmc <- function(iterations, n, acceptance_func = "simple", beta = 0, bp =
 ## Data Generation
 
 ```{r, eval=FALSE}
-set.seed(4)
-x1 <- multi_mcmc(2000, 100, "simple")
+# set.seed(4)
+# x1 <- multi_mcmc(2000, 100, "simple")
 ```
 
 ```{r, eval=FALSE}
-mean(x1[[1]])
-sd(x1[[1]])
-var(x1[[1]])
-max(x1[[1]])
-min(x1[[1]])
-summary(x1[[1]])
+# mean(x1[[1]])
+# sd(x1[[1]])
+# var(x1[[1]])
+# max(x1[[1]])
+# min(x1[[1]])
+# summary(x1[[1]])
 ```
 
 ```{r, eval=FALSE}
-mean(x1[[2]])
-sd(x1[[2]])
-var(x1[[2]])
-max(x1[[2]])
-min(x1[[2]])
-summary(x1[[2]])
-summary(x1[[3]])
+# mean(x1[[2]])
+# sd(x1[[2]])
+# var(x1[[2]])
+# max(x1[[2]])
+# min(x1[[2]])
+# summary(x1[[2]])
+# summary(x1[[3]])
 ```
 
 ```{r, eval=FALSE}
-set.seed(4)
-x2 <- multi_mcmc(2000, 100, "annealing", 0.8, 250)
+# set.seed(4)
+# x2 <- multi_mcmc(2000, 100, "annealing", 0.8, 250)
 ```
 
 ```{r, eval=FALSE}
-mean(x2[[1]])
-sd(x2[[1]])
-var(x2[[1]])
-max(x2[[1]])
-min(x2[[1]])
-summary(x2[[1]])
+# mean(x2[[1]])
+# sd(x2[[1]])
+# var(x2[[1]])
+# max(x2[[1]])
+# min(x2[[1]])
+# summary(x2[[1]])
 ```
 
 ```{r, eval=FALSE}
-mean(x2[[2]])
-sd(x2[[2]])
-var(x2[[2]])
-max(x2[[2]])
-min(x2[[2]])
-summary(x2[[2]])
-summary(x2[[3]])
+# mean(x2[[2]])
+# sd(x2[[2]])
+# var(x2[[2]])
+# max(x2[[2]])
+# min(x2[[2]])
+# summary(x2[[2]])
+# summary(x2[[3]])
 ```
 
 ```{r, eval=FALSE}
-set.seed(4)
-x3 <- multi_mcmc(2000, 100, "annealing dynamic", 0.08, 250)
+# set.seed(4)
+# x3 <- multi_mcmc(2000, 100, "annealing dynamic", 0.08, 250)
 ```
 
 ```{r, eval=FALSE}
-mean(x3[[1]])
-sd(x3[[1]])
-var(x3[[1]])
-max(x3[[1]])
-min(x3[[1]])
-summary(x3[[1]])
+# mean(x3[[1]])
+# sd(x3[[1]])
+# var(x3[[1]])
+# max(x3[[1]])
+# min(x3[[1]])
+# summary(x3[[1]])
 ```
 
 ```{r, eval=FALSE}
-mean(x3[[2]])
-sd(x3[[2]])
-var(x3[[2]])
-max(x3[[2]])
-min(x3[[2]])
-summary(x3[[2]])
-summary(x3[[3]])
+# mean(x3[[2]])
+# sd(x3[[2]])
+# var(x3[[2]])
+# max(x3[[2]])
+# min(x3[[2]])
+# summary(x3[[2]])
+# summary(x3[[3]])
 ```
 
 ```{r, eval=FALSE}
-set.seed(4)
-x4 <- multi_mcmc(2000, 100, "annealing dynamic", 0.2, 250)
+# set.seed(4)
+# x4 <- multi_mcmc(2000, 100, "annealing dynamic", 0.2, 250)
 ```
 
 ```{r, eval=FALSE}
-mean(x4[[1]])
-sd(x4[[1]])
-var(x4[[1]])
-max(x4[[1]])
-min(x4[[1]])
-summary(x4[[1]])
+# mean(x4[[1]])
+# sd(x4[[1]])
+# var(x4[[1]])
+# max(x4[[1]])
+# min(x4[[1]])
+# summary(x4[[1]])
 ```
 
 ```{r, eval=FALSE}
-mean(x4[[2]])
-sd(x4[[2]])
-var(x4[[2]])
-max(x4[[2]])
-min(x4[[2]])
-summary(x4[[2]])
+# mean(x4[[2]])
+# sd(x4[[2]])
+# var(x4[[2]])
+# max(x4[[2]])
+# min(x4[[2]])
+# summary(x4[[2]])
 ```
 
 ```{r, eval=FALSE}
-set.seed(49)
-x5 <- multi_mcmc(2000, 100, "annealing", 0.8, 250)
+# set.seed(49)
+# x5 <- multi_mcmc(2000, 100, "annealing", 0.8, 250)
 ```
 
 ```{r, eval=FALSE}
-mean(x5[[1]])
-sd(x5[[1]])
-var(x5[[1]])
-max(x5[[1]])
-min(x5[[1]])
-summary(x5[[1]])
+# mean(x5[[1]])
+# sd(x5[[1]])
+# var(x5[[1]])
+# max(x5[[1]])
+# min(x5[[1]])
+# summary(x5[[1]])
 ```
 
 ```{r, eval=FALSE}
-mean(x5[[2]])
-sd(x5[[2]])
-var(x5[[2]])
-max(x5[[2]])
-min(x5[[2]])
-summary(x5[[2]])
-summary(x5[[3]])
+# mean(x5[[2]])
+# sd(x5[[2]])
+# var(x5[[2]])
+# max(x5[[2]])
+# min(x5[[2]])
+# summary(x5[[2]])
+# summary(x5[[3]])
 ```
 
 ```{r, eval=FALSE}
-set.seed(49)
-x6 <- multi_mcmc(2000, 100, "delayed", 0.2, 250)
+# set.seed(49)
+# x6 <- multi_mcmc(2000, 100, "delayed", 0.2, 250)
 ```
 
 ```{r, eval=FALSE}
-mean(x6[[1]])
-sd(x6[[1]])
-var(x6[[1]])
-max(x6[[1]])
-min(x6[[1]])
-summary(x6[[1]])
+# mean(x6[[1]])
+# sd(x6[[1]])
+# var(x6[[1]])
+# max(x6[[1]])
+# min(x6[[1]])
+# summary(x6[[1]])
 ```
 
 ```{r, eval=FALSE}
-mean(x6[[2]])
-sd(x6[[2]])
-var(x6[[2]])
-max(x6[[2]])
-min(x6[[2]])
-summary(x6[[2]])
-summary(x6[[3]])
+# mean(x6[[2]])
+# sd(x6[[2]])
+# var(x6[[2]])
+# max(x6[[2]])
+# min(x6[[2]])
+# summary(x6[[2]])
+# summary(x6[[3]])
 ```
 
 ```{r, eval=FALSE}
-set.seed(49)
-x7 <- multi_mcmc(1000, 1000, "annealing", 0.8, 250)
+# set.seed(49)
+# x7 <- multi_mcmc(1000, 1000, "annealing", 0.8, 250)
 ```
 
 ```{r, eval=FALSE}
-mean(x7[[1]])
-sd(x7[[1]])
-var(x7[[1]])
-max(x7[[1]])
-min(x7[[1]])
-summary(x7[[1]])
+# mean(x7[[1]])
+# sd(x7[[1]])
+# var(x7[[1]])
+# max(x7[[1]])
+# min(x7[[1]])
+# summary(x7[[1]])
 ```
 
 ```{r, eval=FALSE}
-mean(x7[[2]])
-sd(x7[[2]])
-var(x7[[2]])
-max(x7[[2]])
-min(x7[[2]])
-summary(x7[[2]])
-summary(x7[[3]])
+# mean(x7[[2]])
+# sd(x7[[2]])
+# var(x7[[2]])
+# max(x7[[2]])
+# min(x7[[2]])
+# summary(x7[[2]])
+# summary(x7[[3]])
 ```
 
 ```{r}
@@ -1244,27 +1244,27 @@ test_grid1
 ```
 
 ```{r, eval=FALSE}
-set.seed(4)
-partial1 <- multi_mcmc(1000, 100, "annealing", 0.8, 200, test_grid1)
+# set.seed(4)
+# partial1 <- multi_mcmc(1000, 100, "annealing", 0.8, 200, test_grid1)
 ```
 
 ```{r, eval=FALSE}
-mean(partial1[[1]])
-sd(partial1[[1]])
-var(partial1[[1]])
-max(partial1[[1]])
-min(partial1[[1]])
-summary(partial1[[1]])
+# mean(partial1[[1]])
+# sd(partial1[[1]])
+# var(partial1[[1]])
+# max(partial1[[1]])
+# min(partial1[[1]])
+# summary(partial1[[1]])
 ```
 
 ```{r, eval=FALSE}
-mean(partial1[[2]])
-sd(partial1[[2]])
-var(partial1[[2]])
-max(partial1[[2]])
-min(partial1[[2]])
-summary(partial1[[2]])
-summary(partial1[[3]])
+# mean(partial1[[2]])
+# sd(partial1[[2]])
+# var(partial1[[2]])
+# max(partial1[[2]])
+# min(partial1[[2]])
+# summary(partial1[[2]])
+# summary(partial1[[3]])
 ```
 
 ## Tuning
@@ -1331,12 +1331,12 @@ beta <- c(0.3,0.8,0.9)
 bp <- c(125, 250)
 iter <- c(500, 750)
 
-set.seed(4)
-tune1 <- tune(iter, beta, bp, "delayed")
+# set.seed(4)
+# tune1 <- tune(iter, beta, bp, "delayed")
 ```
 
 ```{r, eval=FALSE}
-tune1
+# tune1
 ```
 
 ```{r}
@@ -1359,43 +1359,43 @@ board100 <- generate_100(cards)
 ### OLD scoring function
 
 ```{r}
-OLD <- multi_mcmc(1000, 100, "annealing dynamic", 0.9, 200, record_board = TRUE, boardlist = board100)
+# OLD <- multi_mcmc(1000, 100, "annealing dynamic", 0.9, 200, record_board = TRUE, boardlist = board100)
 ```
 
 ### NEW scoring function
 
 ```{r}
-NEW <- multi_mcmc(1000, 100, "annealing dynamic", 0.9, 200, record_board = TRUE, boardlist = board100)
+# NEW <- multi_mcmc(1000, 100, "annealing dynamic", 0.9, 200, record_board = TRUE, boardlist = board100)
 ```
 
 ```{r, eval=FALSE}
-tune_exact1 <- tune(1000, 0.99, 250, "annealing dynamic", boardlist = board100)
-tune_exact2 <- tune(1000, 0.9, 200, "annealing dynamic", boardlist = board100)
-tune_exact3 <- tune(2000, 0.7, 500, "delayed", boardlist = board100)
-tune_exact4 <- tune(2000, 0.8, 500, "annealing dynamic", boardlist = board100)
-tune_exact5 <- tune(1500, 0.9, 500, "annealing dynamic", boardlist = board100)
-tune_exact6 <- tune(750, 0.99, 250, "annealing dynamic", boardlist = board100)
-tune_exact7 <- tune(750, 0.3, 250, "delayed", boardlist = board100)
-tune_exact8 <- tune(500, 0.99, 250, "annealing dynamic", boardlist = board100)
-tune_exact9 <- tune(2000, 0.9, 250, "annealing dynamic", boardlist = board100)
-tune_exact10 <- tune(750, 0.9, 125, "annealing dynamic", boardlist = board100)
-tune_exact11 <- tune(1500, 0.9, 250, "annealing dynamic", boardlist = board100)
+# tune_exact1 <- tune(1000, 0.99, 250, "annealing dynamic", boardlist = board100)
+# tune_exact2 <- tune(1000, 0.9, 200, "annealing dynamic", boardlist = board100)
+# tune_exact3 <- tune(2000, 0.7, 500, "delayed", boardlist = board100)
+# tune_exact4 <- tune(2000, 0.8, 500, "annealing dynamic", boardlist = board100)
+# tune_exact5 <- tune(1500, 0.9, 500, "annealing dynamic", boardlist = board100)
+# tune_exact6 <- tune(750, 0.99, 250, "annealing dynamic", boardlist = board100)
+# tune_exact7 <- tune(750, 0.3, 250, "delayed", boardlist = board100)
+# tune_exact8 <- tune(500, 0.99, 250, "annealing dynamic", boardlist = board100)
+# tune_exact9 <- tune(2000, 0.9, 250, "annealing dynamic", boardlist = board100)
+# tune_exact10 <- tune(750, 0.9, 125, "annealing dynamic", boardlist = board100)
+# tune_exact11 <- tune(1500, 0.9, 250, "annealing dynamic", boardlist = board100)
 ```
 
 ```{r}
-final_params <- rbind(tune_exact1,
-                      tune_exact2,
-                      tune_exact3,
-                      tune_exact4,
-                      tune_exact5,
-                      tune_exact6,
-                      tune_exact7,
-                      tune_exact8,
-                      tune_exact9,
-                      tune_exact10,
-                      tune_exact11)
-
-write.csv(final_params,here::here("final-parameters-CORRECTED-seed2.csv"), row.names = FALSE)
+# final_params <- rbind(tune_exact1,
+#                       tune_exact2,
+#                       tune_exact3,
+#                       tune_exact4,
+#                       tune_exact5,
+#                       tune_exact6,
+#                       tune_exact7,
+#                       tune_exact8,
+#                       tune_exact9,
+#                       tune_exact10,
+#                       tune_exact11)
+# 
+# write.csv(final_params,here::here("final-parameters-CORRECTED-seed2.csv"), row.names = FALSE)
 ```
 
 ```{r, eval=FALSE}
@@ -1411,20 +1411,20 @@ tuned_params2 <- read.csv(here::here("final-parameters-CORRECTED-seed2.csv"))
 ```
 
 ```{r, eval=FALSE}
-new_params <- rbind(tuned_params1, tune1)
-write.csv(new_params,here::here("new-parameters.csv"), row.names = FALSE)
+# new_params <- rbind(tuned_params1, tune1)
+# write.csv(new_params,here::here("new-parameters.csv"), row.names = FALSE)
 ```
 
 ```{r}
-set.seed(45)
-sim_grid1 <- generate_grid(cards)
-x <- rw_mcmc(sim_grid1, 2000, "annealing dynamic", beta = 0.8, 250)
+# set.seed(45)
+# sim_grid1 <- generate_grid(cards)
+# x <- rw_mcmc(sim_grid1, 2000, "annealing dynamic", beta = 0.8, 250)
 ```
 
 ```{r}
-xz <- data.frame(iter = rep(1:length(x[[4]])), scores = x[[4]])
-ggplot(aes(x = iter, y = scores), data = xz) +
-  geom_line()
+# xz <- data.frame(iter = rep(1:length(x[[4]])), scores = x[[4]])
+# ggplot(aes(x = iter, y = scores), data = xz) +
+#   geom_line()
 ```
 
 ## Database
@@ -1522,8 +1522,8 @@ shuffle <- function(df) {
 ```
 
 ```{r}
-set.seed(88)
-shuffled_incorrect <- shuffle(database_INCORRECT)
+# set.seed(88)
+# shuffled_incorrect <- shuffle(database_INCORRECT)
 ```
 
 ```{r}
@@ -1559,61 +1559,42 @@ df_to_matrix_list <- function(df) {
 ```
 
 ```{r}
-shuffled_grid_list <- df_to_matrix_list(shuffled_incorrect)
+# shuffled_grid_list <- df_to_matrix_list(shuffled_incorrect)
 ```
 
 ### First Time
 
 ```{r, eval=FALSE}
-startTime <- Sys.time()
-
-db_gen <- multi_mcmc(1000, 100, "annealing dynamic", 0.9, 200, record_board = TRUE, 
-                     boardlist=shuffled_grid_list[names(shuffled_grid_list)[1:100]], 
-                     card_name = "bee_meadow")
-endTime <- Sys.time()
-print(endTime - startTime)
-
-write.csv(db_gen, here::here("database-CORRECTED.csv"), row.names = FALSE)
+# startTime <- Sys.time()
+# 
+# db_gen <- multi_mcmc(1000, 100, "annealing dynamic", 0.9, 200, record_board = TRUE, 
+#                      boardlist=shuffled_grid_list[names(shuffled_grid_list)[1:100]], 
+#                      card_name = "bee_meadow")
+# endTime <- Sys.time()
+# print(endTime - startTime)
+# 
+# write.csv(db_gen, here::here("database-CORRECTED.csv"), row.names = FALSE)
 ```
-```{r}
-#delete chunk
-temp <- df_to_matrix_list(db_gen[1:20])
-score_grid(matrix(c(t(db_gen[17,1:20])),nrow=4,ncol=5,byrow=T), individual=TRUE)
-
-#   bear_score = c(first_row[1]),
-#   bee_score = c(first_row[2]),
-#   meadow_score = c(first_row[3]),
-#   trout_score = c(first_row[4]),
-#   eagle_score = c(first_row[5]),
-#   rabbit_score = c(first_row[6]),
-#   dragonfly_score = c(first_row[7]),
-#   fox_score = c(first_row[8]),
-#   deer_score = c(first_row[9]),
-#   stream_score = c(first_row[10]),
-#   wolves_score = c(first_row[11]),
-#   dv_score = c(first_row[12])
-```
-
 
 ### Subsequent
 
 ```{r, eval=FALSE}
-startTime <- Sys.time()
-
-db_gen <- multi_mcmc(1000, 4000, "annealing dynamic", 0.9, 200, record_board = TRUE,
-                     boardlist=shuffled_grid_list[names(shuffled_grid_list)[46001:50000]], 
-                     card_name = "low_eagle_rabbit")
-endTime <- Sys.time()
-print(endTime - startTime)
-
-database_old <- read.csv(here::here("database-CORRECTED.csv"))
-database_new <- rbind(database_old, db_gen)
-database_new <- database_new %>% distinct()
-write.csv(database_new, here::here("database-CORRECTED.csv"), row.names = FALSE)
+# startTime <- Sys.time()
+# 
+# db_gen <- multi_mcmc(1000, 4000, "annealing dynamic", 0.9, 200, record_board = TRUE,
+#                      boardlist=shuffled_grid_list[names(shuffled_grid_list)[46001:50000]], 
+#                      card_name = "low_eagle_rabbit")
+# endTime <- Sys.time()
+# print(endTime - startTime)
+# 
+# database_old <- read.csv(here::here("database-CORRECTED.csv"))
+# database_new <- rbind(database_old, db_gen)
+# database_new <- database_new %>% distinct()
+# write.csv(database_new, here::here("database-CORRECTED.csv"), row.names = FALSE)
 ```
 
 ```{r, eval=FALSE}
-head(db_gen)
+# head(db_gen)
 ```
 
 ```{r}
@@ -1631,10 +1612,10 @@ dist2
 ```{r}
 # Add the original IDs back
 
-database_new_ID <- database_new %>%
-  mutate(ID = ID_NEW$ID) %>%
-  select(ID, 1:43) %>%
-  arrange(ID)
+# database_new_ID <- database_new %>%
+#   mutate(ID = ID_NEW$ID) %>%
+#   select(ID, 1:43) %>%
+#   arrange(ID)
 
 # write.csv(database_new_ID, here::here("database-CORRECTED.csv"), row.names = FALSE)
 ```
@@ -1953,26 +1934,26 @@ summarized
 ```
 
 ```{r}
-write.csv(summarized, here::here("score_removed_c_summary.csv"), row.names = FALSE)
+# write.csv(summarized, here::here("score_removed_c_summary.csv"), row.names = FALSE)
 ```
 
 
 ```{r}
-database1 %>%
-  group_by(cluster) %>%
-  summarise(mean_score=mean(score),
-            sd_score=sd(score),
-            count=n(),
-            .groups = 'drop') 
+# database1 %>%
+#   group_by(cluster) %>%
+#   summarise(mean_score=mean(score),
+#             sd_score=sd(score),
+#             count=n(),
+#             .groups = 'drop') 
 ```
 
 ```{r}
-database1 %>%
-  group_by(cluster) %>%
-  summarise(mean_score=mean(score),
-            sd_score=sd(score),
-            count=n(),
-            .groups = 'drop') 
+# database1 %>%
+#   group_by(cluster) %>%
+#   summarise(mean_score=mean(score),
+#             sd_score=sd(score),
+#             count=n(),
+#             .groups = 'drop') 
 ```
 
 
@@ -2027,7 +2008,7 @@ ID_cols <- database_new %>%
 ```
 
 ```{r}
-db_individual_removed <- read.csv(here::here("db_individual_lowest_removed.csv"))
+db_individual_removed <- read.csv(here::here("db_individual_lowest_removed-CORRECTED.csv"))
 
 db_individual_removed <- db_individual_removed %>%
   select(-ID)
@@ -2142,7 +2123,7 @@ centroids
 
 ```{r}
 database_lowest_removed <- database_new %>%
-  filter(score > 61)
+  filter(score > 57)
 ```
 
 ```{r}
@@ -2383,23 +2364,23 @@ database_lowest_removed <- database_new %>%
 ```
 
 ```{r}
-database4 <- database_lowest_removed %>%
-  mutate(`7cluster_seed4` = extract_cluster_assignment(km_fitted3)$.cluster)
+# database4 <- database_lowest_removed %>%
+#   mutate(`7cluster_seed4` = extract_cluster_assignment(km_fitted3)$.cluster)
 ```
 
 ```{r}
-database4 <- database4 %>%
-  mutate(`7cluster_seed5` = extract_cluster_assignment(km_fitted3)$.cluster)
+# database4 <- database4 %>%
+#   mutate(`7cluster_seed5` = extract_cluster_assignment(km_fitted3)$.cluster)
 ```
 
 ```{r}
-seed <- database4 %>%
-  group_by(`7cluster_seed41`) %>%
-  summarize(mean_score=mean(score),
-            sd_score=sd(score),
-            .groups = 'drop') %>%
-  arrange(desc(mean_score))
-seed
+# seed <- database4 %>%
+#   group_by(`7cluster_seed41`) %>%
+#   summarize(mean_score=mean(score),
+#             sd_score=sd(score),
+#             .groups = 'drop') %>%
+#   arrange(desc(mean_score))
+# seed
 ```
 
 ```{r}
@@ -2427,26 +2408,26 @@ database_lowest_removed <- database_new %>%
 ```
 
 ```{r}
-database3 <- database_lowest_removed %>%
-  mutate(`7cluster` = extract_cluster_assignment(km_fitted3)$.cluster)
+# database3 <- database_lowest_removed %>%
+#   mutate(`7cluster` = extract_cluster_assignment(km_fitted3)$.cluster)
 ```
 
 ```{r}
-database3 <- database3 %>%
-  mutate(`7cluster_s5` = extract_cluster_assignment(km_fitted3)$.cluster)
+# database3 <- database3 %>%
+#   mutate(`7cluster_s5` = extract_cluster_assignment(km_fitted3)$.cluster)
 ```
 
 ```{r}
-database3 %>%
-  group_by(`6cluster`) %>%
-  summarize(mean_score=mean(score),
-            sd_score=sd(score),
-            p25th=quantile(score,probs=0.25),
-            median=quantile(score,probs=0.5),
-            p75th=quantile(score,probs=0.75),
-            count=n(),
-            .groups = 'drop') %>%
-  arrange(desc(mean_score))
+# database3 %>%
+#   group_by(`6cluster`) %>%
+#   summarize(mean_score=mean(score),
+#             sd_score=sd(score),
+#             p25th=quantile(score,probs=0.25),
+#             median=quantile(score,probs=0.5),
+#             p75th=quantile(score,probs=0.75),
+#             count=n(),
+#             .groups = 'drop') %>%
+#   arrange(desc(mean_score))
 ```
 
 
@@ -4314,7 +4295,7 @@ ggplot(neighbors_sum2 %>% filter(card == "Bee"),
   geom_bar(stat = "identity") +
   scale_fill_viridis_d() +
   theme_minimal() +
-  facet_wrap(vars(`7cluster`)) +
+  facet_wrap(vars(`6cluster`)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
   labs(title="Bee neighbors in each cluster")
 ```
@@ -4327,7 +4308,7 @@ ggplot(neighbors_sum2 %>% filter(card == "Meadow"),
   geom_bar(stat = "identity") +
   scale_fill_viridis_d() +
   theme_minimal() +
-  facet_wrap(vars(`7cluster`)) +
+  facet_wrap(vars(`6cluster`)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
   labs(title="Meadow neighbors in each cluster")
 ```
@@ -4340,7 +4321,7 @@ ggplot(neighbors_sum2 %>% filter(card == "Trout"),
   geom_bar(stat = "identity") +
   scale_fill_viridis_d() +
   theme_minimal() +
-  facet_wrap(vars(`7cluster`)) +
+  facet_wrap(vars(`6cluster`)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
   labs(title="Trout neighbors in each cluster")
 ```
@@ -4353,7 +4334,7 @@ ggplot(neighbors_sum2 %>% filter(card == "Eagle"),
   geom_bar(stat = "identity") +
   scale_fill_viridis_d() +
   theme_minimal() +
-  facet_wrap(vars(`7cluster`)) +
+  facet_wrap(vars(`6cluster`)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
   labs(title="Eagle neighbors in each cluster")
 ```
@@ -4366,7 +4347,7 @@ ggplot(neighbors_sum2 %>% filter(card == "Rabbit"),
   geom_bar(stat = "identity") +
   scale_fill_viridis_d() +
   theme_minimal() +
-  facet_wrap(vars(`7cluster`)) +
+  facet_wrap(vars(`6cluster`)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
   labs(title="Rabbit neighbors in each cluster")
 ```
@@ -4379,7 +4360,7 @@ ggplot(neighbors_sum2 %>% filter(card == "Dragonfly"),
   geom_bar(stat = "identity") +
   scale_fill_viridis_d() +
   theme_minimal() +
-  facet_wrap(vars(`7cluster`)) +
+  facet_wrap(vars(`6cluster`)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
   labs(title="Dragonfly neighbors in each cluster")
 ```
@@ -4392,7 +4373,7 @@ ggplot(neighbors_sum2 %>% filter(card == "Fox"),
   geom_bar(stat = "identity") +
   scale_fill_viridis_d() +
   theme_minimal() +
-  facet_wrap(vars(`7cluster`)) +
+  facet_wrap(vars(`6cluster`)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
   labs(title="Fox neighbors in each cluster")
 ```
@@ -4405,7 +4386,7 @@ ggplot(neighbors_sum2 %>% filter(card == "Deer"),
   geom_bar(stat = "identity") +
   scale_fill_viridis_d() +
   theme_minimal() +
-  facet_wrap(vars(`7cluster`)) +
+  facet_wrap(vars(`6cluster`)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
   labs(title="Deer neighbors in each cluster")
 ```
@@ -4418,7 +4399,7 @@ ggplot(neighbors_sum2 %>% filter(card == "Stream"),
   geom_bar(stat = "identity") +
   scale_fill_viridis_d() +
   theme_minimal() +
-  facet_wrap(vars(`7cluster`)) +
+  facet_wrap(vars(`6cluster`)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
   labs(title="Stream neighbors in each cluster")
 ```
@@ -4431,7 +4412,7 @@ ggplot(neighbors_sum2 %>% filter(card == "Wolf"),
   geom_bar(stat = "identity") +
   scale_fill_viridis_d() +
   theme_minimal() +
-  facet_wrap(vars(`7cluster`)) +
+  facet_wrap(vars(`6cluster`)) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8)) +
   labs(title="Wolf neighbors in each cluster")
 ```
@@ -4448,7 +4429,7 @@ cluster_merge <- merge(x = cluster_data, y = db_individual_removed, by = "ID")
 ggplot(aes(x = score), data = cluster_merge) +
   geom_histogram(binwidth = 5, fill = "green3") +
   theme_minimal() +
-  facet_wrap(vars(X7cluster)) +
+  facet_wrap(vars(X6cluster)) +
   labs(title="Score distribution by cluster")
 ```
 
@@ -4464,7 +4445,7 @@ low_score = database_new %>% anti_join(cluster_merge, by = "ID")
 ```
 
 ```{r}
-ggplot(cluster_merge, aes(x = score, color = factor(X7cluster))) +
+ggplot(cluster_merge, aes(x = score, color = factor(X6cluster))) +
   geom_density(size = 1.2, key_glyph = "path") +
   geom_density(aes(x=score, color = "Unclustered"), size = 1.2, data=low_score, key_glyph = "path") +
   geom_density(aes(x=score, color = "All grids"), size = 1.2, data=database_new, key_glyph = "path") +
@@ -4478,6 +4459,7 @@ ggplot(database_new, aes(x = score, color = pool)) +
   labs(x = "Score", y = "Density", color = "Pool Sampled", title="Score distribution by pool") +
   theme_minimal()
 ```
+
 ```{r}
 database_start <- read.csv(here::here("database-CORRECTED-s.csv"))
 ```
@@ -4647,6 +4629,7 @@ slide_score
 (choose(12, 4)*choose(8, 3)*choose(10, 4)*choose(100, 9))/choose(130, 20)
 (choose(12, 3)*choose(8, 1)*choose(10, 2)*choose(100, 14))/choose(130, 20)
 ```
+
 ```{r}
 # eagle rabbit 
 (choose(8, 3)*choose(8, 3)*choose(10, 3)*choose(104, 11))/choose(130, 20)
@@ -4665,7 +4648,7 @@ fps2 <- read.csv(here::here("final-parameters-seed2.csv"))
 tuned_params <- read.csv(here::here("tuned-parameters.csv"))
 ```
 
-### AI function
+### multivariate hypergeometric function
 
 ```{r}
 multivariate_hypergeometric <- function(desired_counts, deck_counts, total_draw, total_deck = NULL) {
