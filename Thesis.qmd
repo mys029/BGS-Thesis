@@ -3956,6 +3956,28 @@ cluster_merge_renamed %>%
 ```
 
 
+```{r}
+cluster_share <- cluster_merge_renamed %>%
+  group_by(`X6cluster`) %>%
+  summarize(meadow = mean(meadow_score),
+            stream = mean(stream_score),
+            bear = mean(bear_score),
+            deer = mean(deer_score),
+            fox = mean(fox_score),
+            wolf = mean(wolves_score),
+            trout = mean(trout_score),
+            bee = mean(bee_score),
+            dragonfly = mean(dragonfly_score),
+            eagle = mean(eagle_score),
+            rabbit = mean(rabbit_score),
+            diversity = mean(dv_score),
+            total = mean(score)
+            ) %>%
+  arrange(desc(total))
+cluster_share
+```
+
+
 ### Heat Maps
 
 ```{r}
