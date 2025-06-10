@@ -26,7 +26,6 @@ editor: visual
 
 library(tidyverse)
 library(tidymodels)
-library(glmnet)
 library(discrim)
 library(rpart)
 library(rpart.plot)
@@ -1486,24 +1485,24 @@ low_eag_rab <- c(rep("Bear", 12),
 ### Shuffle old database
 
 ```{r}
-database_INCORRECT <- read.csv(here::here("database.csv"))
-database_INCORRECT <- database_INCORRECT %>%
-  arrange(pool)
+# database_INCORRECT <- read.csv(here::here("database.csv"))
+# database_INCORRECT <- database_INCORRECT %>%
+#   arrange(pool)
 ```
 
 ```{r}
-dist <- database_INCORRECT %>% 
-  group_by(pool) %>%
-  summarize(count = n())
-dist
+# dist <- database_INCORRECT %>% 
+#   group_by(pool) %>%
+#   summarize(count = n())
+# dist
 ```
 
 ```{r}
-ID_NEW <- database_INCORRECT %>% 
-  select(ID)
-
-database_INCORRECT <- database_INCORRECT %>% 
-  select(2:21)
+# ID_NEW <- database_INCORRECT %>% 
+#   select(ID)
+# 
+# database_INCORRECT <- database_INCORRECT %>% 
+#   select(2:21)
 ```
 
 ```{r}
@@ -1531,7 +1530,7 @@ shuffle <- function(df) {
 ```
 
 ```{r}
-shuffled_incorrect <- read.csv(here::here("shuffled_database.csv"))
+# shuffled_incorrect <- read.csv(here::here("shuffled_database.csv"))
 ```
 
 ### Convert to function ready
@@ -3199,6 +3198,25 @@ all_cluster_prop <- read.csv(here::here("cluster_prop6-CORRECTED.csv")) %>%
 ```
 
 ```{r}
+all_cluster_prop <- all_cluster_prop %>%
+  mutate(
+    name = case_when(
+      name == "bear" ~ "Bear",
+      name == "bee" ~ "Bee",
+      name == "meadow" ~ "Meadow",
+      name == "stream" ~ "Stream",
+      name == "dragonfly" ~ "Dragonfly",
+      name == "eagle" ~ "Eagle",
+      name == "rabbit" ~ "Rabbit",
+      name == "fox" ~ "Fox",
+      name == "deer" ~ "Deer",
+      name == "trout" ~ "Trout",
+      name == "wolf" ~ "Wolf",
+    )
+  )
+```
+
+```{r}
 all_cluster_prop_renamed <- all_cluster_prop %>%
     mutate(
       cluster = factor(cluster, levels = c(
@@ -3383,6 +3401,40 @@ ggplot(aes(x = reorder(name, -true_prop),
   facet_wrap(vars(cluster))
 ```
 
+#### 6 clust alt
+
+```{r}
+ggplot(aes(x = reorder(name, -true_prop), 
+           y = proportion, 
+           fill = reorder(name, -true_prop)), 
+       data=all_cluster_prop) + 
+  geom_bar(stat = "identity") +
+  geom_tile(
+    aes(
+      x = reorder(name, -true_prop),
+      y = true_prop,
+      width = 1,  
+      height = 0  
+    ),
+    color = "red",
+    fill = "red",
+    linetype = "solid",
+    linewidth = 0.7,
+    alpha = 0.7
+  ) +
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
+  labs(x = "Card", y = "Proportion", fill="Card Type", title="Propotion of card types in each cluster") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(cluster))
+```
+
+
 #### 6 clust s5
 
 ```{r}
@@ -3556,13 +3608,22 @@ ggplot(aes(x = reorder(name, -true_prop),
            fill = reorder(name, -true_prop)), 
        data=all_cluster_prop_renamed) + 
   geom_bar(stat = "identity") +
-  geom_point(aes(x = reorder(name, -true_prop), y= true_prop),
-             color = "red",
-             data=all_cluster_prop_renamed,
-             show.legend = FALSE) +
+  geom_tile(
+    aes(
+      x = reorder(name, -true_prop),
+      y = true_prop,
+      width = 1,  
+      height = 0  
+    ),
+    color = "red",
+    fill = "red",
+    linetype = "solid",
+    linewidth = 0.7,
+    alpha = 0.7
+  ) +
   scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
                     "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
-  labs(x = "card", fill="card type", title="Propotion of card types in each cluster") +
+  labs(x = "Card", y="Proportion", fill="Card type", title="Propotion of card types in each cluster") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
         panel.grid.major = element_line(color = "black"),
@@ -3572,7 +3633,64 @@ ggplot(aes(x = reorder(name, -true_prop),
   facet_wrap(vars(cluster))
 ```
 
+```{r}
+all_cluster_prop_renamed2 <- all_cluster_prop_renamed %>%
+  mutate(prop_diff = proportion-true_prop)
+```
 
+```{r}
+ggplot(aes(x = reorder(name, -true_prop), 
+           y = prop_diff, 
+           fill = reorder(name, -true_prop)), 
+       data=all_cluster_prop_renamed2) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("#4daf4a", "#377eb8", "#000000", "#a65628", "#ff7f00",
+                    "#999999", "#f781bf", "#ffff33", "#66c2a5", "#984ea3", "#fc8d62")) +
+  labs(x = "Card", y="Difference in Proportion", fill="Card type", title="Propotion of card types in each cluster") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(cluster))
+```
+
+```{r}
+ggplot(aes(x = cluster, 
+           y = proportion, 
+           fill = cluster), 
+       data=all_cluster_prop_renamed) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("#000000", "#377eb8", "#4daf4a", "#984ea3", "#a65628",
+                                "#f781bf")) +
+  labs(x = "Card", y="Proportion", fill="Card type", title="Propotion of card types in each cluster") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(reorder(name, -true_prop)))
+```
+
+```{r}
+ggplot(aes(x = cluster, 
+           y = prop_diff, 
+           fill = cluster), 
+       data=all_cluster_prop_renamed2) + 
+  geom_bar(stat = "identity") +
+  scale_fill_manual(values = c("#000000", "#377eb8", "#4daf4a", "#984ea3", "#a65628",
+                                "#f781bf")) +
+  labs(x = "Card", y="Difference in Proportion", fill="Card type", title="Propotion of card types in each cluster") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 8),
+        panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank()) +
+  facet_wrap(vars(reorder(name, -true_prop)))
+```
 
 ```{r}
 ggplot(all_cluster_prop_renamed, aes(x = proportion, y = cluster, color = reorder(name, -true_prop))) +
@@ -3728,6 +3846,68 @@ results_table
 ```
 
 ```{r}
+cluster_pool <- cluster_merge_renamed %>%
+  group_by(`X6cluster`, pool) %>%
+  summarize(count = n()) %>%
+  mutate(prop = count / sum(count))
+cluster_pool
+```
+
+```{r}
+cluster_pool_renamed <- cluster_pool %>%
+    mutate(
+      pool = factor(pool, levels = c(
+      "default", "bee_meadow", "dragonfly_stream", 
+      "low_eagle_rabbit"
+    ))) %>%
+    mutate(pool = fct_recode(pool,
+      "Default Pool" = "default",
+      "Meadow Bee Pool" = "bee_meadow",
+      "Stream Dragonfly Pool" = "dragonfly_stream",
+      "Low Eagle Rabbit Pool" = "low_eagle_rabbit"
+    ))
+```
+
+
+```{r}
+ggplot(aes(x = pool, 
+           y = prop, 
+           fill = pool), 
+       data=cluster_pool_renamed) + 
+  geom_bar(stat = "identity") +
+  labs(x = "Pool Sampled", y="Proportion", fill="Pool Sampled", title="Pool sampled in each cluster") +
+  theme_minimal() +
+  theme(panel.grid.major = element_line(color = "black"),
+        panel.grid.minor = element_line(color = "black"),
+        panel.grid.major.x = element_blank(),  # Remove vertical major grid lines
+        panel.grid.minor.x = element_blank(),
+        axis.text.x = element_blank(),  # Removes text
+        axis.ticks.x = element_blank()) +
+  facet_wrap(vars(X6cluster))
+```
+
+```{r}
+cluster_div <- cluster_merge_renamed %>%
+  group_by(`X6cluster`, dv_score) %>%
+  summarize(count = n()) %>%
+  mutate(prop = count / sum(count)) %>% 
+  arrange(desc(dv_score))
+cluster_div
+```
+
+```{r}
+ggplot(aes(x = dv_score, y = prop, color = X6cluster, linetype = X6cluster), data=cluster_div) +
+  geom_line(size = 1.1) +
+  labs(x = "Score", y = "Density", color = "Cluster", linetype = "Cluster", title="Diversity Score distribution by cluster") +
+  scale_color_manual(values = c("#000000", "#377eb8", "#4daf4a", "#984ea3", "#a65628",
+                                "#f781bf")) +
+  scale_x_continuous(
+    breaks = c(-5, 0, 3, 7, 12)) +
+  theme_minimal()
+```
+
+
+```{r}
 cluster_merge_renamed %>%
   filter(X6cluster == "Meadow Bee") %>%
   group_by(dv_score) %>%
@@ -3792,9 +3972,15 @@ cluster_position_renamed <- cluster_position_renamed %>%
 ggplot(aes(x=col, y=row, fill=proportion), data=(overall_position)) +
   geom_tile() +
   theme_minimal() +
-  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  scale_fill_gradient(low="#F0F0F0", high="#006837", limits = c(0, NA)) +
   facet_wrap(vars(card)) +
-  labs(title="Positions across all 50,000")
+  labs(title="Positions across all 50,000", x = "Row", y = "Column", fill = "Proportion") +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.ticks.length = unit(0, "pt"),
+    panel.grid = element_blank() 
+  )
 ```
 
 ```{r}
@@ -3802,9 +3988,15 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>%
                                                    filter(cluster == "Bear Trout Bee"))) +
   geom_tile() +
   theme_minimal() +
-  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  scale_fill_gradient(low="#F0F0F0", high="#006837", limits = c(0, NA)) +
   facet_wrap(vars(card)) +
-  labs(title="Bear Trout Bee cluster")
+  labs(title="Bear Trout Bee cluster", x = "Row", y = "Column", fill = "Proportion") +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.ticks.length = unit(0, "pt"),
+    panel.grid = element_blank() 
+  )
 ```
 
 ```{r}
@@ -3813,16 +4005,22 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>%
                                                           card %in% c("Meadow", "Stream", "Dragonfly", "Eagle")))) +
   geom_tile() +
   theme_minimal() +
-  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  scale_fill_gradient(low="#F0F0F0", high="#006837", limits = c(0, NA)) +
   facet_wrap(vars(card)) +
-  labs(title="Bear Trout Bee cluster")
+  labs(title="Bear Trout Bee cluster", x = "Row", y = "Column", fill = "Proportion") +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.ticks.length = unit(0, "pt"),
+    panel.grid = element_blank() 
+  )
 ```
 
 ```{r}
 ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>% filter(cluster == "Stream Dragonfly"))) +
   geom_tile() +
   theme_minimal() +
-  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  scale_fill_gradient(low="#F0F0F0", high="#006837", limits = c(0, NA)) +
   facet_wrap(vars(card)) +
   labs(title="Stream Dragonfly cluster")
 ```
@@ -3833,9 +4031,15 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>%
                                                           card %in% c("Meadow", "Stream", "Bear", "Bee")))) +
   geom_tile() +
   theme_minimal() +
-  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  scale_fill_gradient(low="#F0F0F0", high="#006837", limits = c(0, NA)) +
   facet_wrap(vars(card)) +
-  labs(title="Stream Dragonfly cluster")
+  labs(title="Stream Dragonfly cluster", x = "Row", y = "Column", fill = "Proportion") +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.ticks.length = unit(0, "pt"),
+    panel.grid = element_blank() 
+  )
 ```
 
 ```{r}
@@ -3853,9 +4057,15 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>%
                                                           card %in% c("Meadow", "Stream", "Trout", "Bee")))) +
   geom_tile() +
   theme_minimal() +
-  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  scale_fill_gradient(low="#F0F0F0", high="#006837", limits = c(0, NA)) +
   facet_wrap(vars(card)) +
-  labs(title="Meadow Bee cluster")
+  labs(title="Meadow Bee cluster", x = "Row", y = "Column", fill = "Proportion") +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.ticks.length = unit(0, "pt"),
+    panel.grid = element_blank() 
+  )
 ```
 
 
@@ -3874,9 +4084,15 @@ ggplot(aes(x=col, y=row, fill=proportion), data=(cluster_position_renamed %>%
                                                           card %in% c("Meadow", "Eagle")))) +
   geom_tile() +
   theme_minimal() +
-  scale_fill_gradient(low="#F0F0F0", high="#006837") +
+  scale_fill_gradient(low="#F0F0F0", high="#006837", limit = c(0,NA)) +
   facet_wrap(vars(card)) +
-  labs(title="Eagle Rabbit cluster") +
+  labs(title="Eagle Rabbit cluster", x = "Row", y = "Column", fill = "Proportion") +
+  theme(
+    axis.text = element_blank(),
+    axis.ticks = element_blank(),
+    axis.ticks.length = unit(0, "pt"),
+    panel.grid = element_blank() 
+  ) +
   coord_fixed(ratio = 0.8)
 ```
 
@@ -4465,9 +4681,39 @@ database_start <- read.csv(here::here("database-CORRECTED-s.csv"))
 ```
 
 ```{r}
-ggplot(database_start, aes(x = start_score, color = pool)) +
+database_start_renamed <- database_start %>%
+    mutate(
+      pool = factor(pool, levels = c(
+      "default", "bee_meadow", "dragonfly_stream", 
+      "low_eagle_rabbit"
+    ))) %>%
+    mutate(pool = fct_recode(pool,
+      "Default Pool" = "default",
+      "Meadow Bee Pool" = "bee_meadow",
+      "Stream Dragonfly Pool" = "dragonfly_stream",
+      "Low Eagle Rabbit Pool" = "low_eagle_rabbit"
+    ))
+```
+
+```{r}
+database_new_renamed <- database_new %>%
+    mutate(
+      pool = factor(pool, levels = c(
+      "default", "bee_meadow", "dragonfly_stream", 
+      "low_eagle_rabbit"
+    ))) %>%
+    mutate(pool = fct_recode(pool,
+      "Default Pool" = "default",
+      "Meadow Bee Pool" = "bee_meadow",
+      "Stream Dragonfly Pool" = "dragonfly_stream",
+      "Low Eagle Rabbit Pool" = "low_eagle_rabbit"
+    ))
+```
+
+```{r}
+ggplot(database_start_renamed, aes(x = start_score, color = pool)) +
   geom_density(aes(linetype = factor(pool)), size = 1.2, key_glyph = "path", show.legend = FALSE) +
-  stat_density(data=database_new, aes(x = score, color = pool), size = 1.1,
+  stat_density(data=database_new_renamed, aes(x = score, color = pool), size = 1.1,
                geom="line",position="identity") +
   scale_linetype_manual(values = c("dashed", "dotted", "dotdash", "longdash", "twodash")) +
   labs(x = "Score", y = "Density", color = "Pool Sampled", title="Start Score distribution by pool") +
@@ -4641,7 +4887,7 @@ xvy <- cluster_merge %>% filter(X7cluster == "Cluster_4")
 ```
 
 ```{r}
-fps2 <- read.csv(here::here("final-parameters-seed2.csv"))
+# fps2 <- read.csv(here::here("final-parameters-seed2.csv"))
 ```
 
 ```{r}
